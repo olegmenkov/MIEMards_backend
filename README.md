@@ -2,7 +2,9 @@
 Установить зависимости:
 
 ```pip install -r requirements.txt```
+
 или
+
 ```pip3 install -r requirements.txt```
 
 Запустить приложение:
