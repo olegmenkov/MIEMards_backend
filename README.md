@@ -9,4 +9,4 @@
 
 ```uvicorn main:app --reload```
 
-Все команды выполняются в папке MIEMards
+Все команды выполняются в папке MIEMards_backend
