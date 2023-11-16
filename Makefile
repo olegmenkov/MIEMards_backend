@@ -2,7 +2,7 @@ all: lint test
 
 lint:
 	@echo "Running mypy..."
-	mypy .
+	mypy --explicit-package-bases .
 
 test:
 	@echo "Running tests with pytest..."

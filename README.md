@@ -1,5 +1,5 @@
 # MIEMards_backend
-Установить зависимости:
+## Установить зависимости:
 
 ```pip install -r requirements.txt```
 
@@ -7,8 +7,20 @@
 
 ```pip3 install -r requirements.txt```
 
-Запустить приложение:
+## Запустить приложение:
 
 ```uvicorn main:app --reload```
 
 Все команды выполняются в папке MIEMards_backend
+
+## Запустить тесты
+
+```shell
+make test
+```
+
+## Запустить линтер
+
+```shell
+make lint
+```
