@@ -1,0 +1,563 @@
+{
+  "openapi": "3.0.2",
+  "info": {
+    "title": "Flashcards API",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/register_user": {
+      "post": {
+        "summary": "Регистрация пользователя",
+        "description": "Регистрация нового пользователя в системе",
+        "operationId": "registerUser",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserRegistrationData"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Успешная регистрация",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Ошибка валидации",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/login": {
+      "post": {
+        "summary": "Вход пользователя",
+        "description": "Аутентификация пользователя в системе",
+        "operationId": "loginUser",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserLoginData"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Успешный вход",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "401": {
+            "description": "Неверные учетные данные",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/{userId}/decks": {
+      "get": {
+        "summary": "Вернуть колоды заданного пользователя",
+        "description": "Получение списка колод для указанного пользователя",
+        "operationId": "getUserDecks",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Список колод пользователя",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserDecks"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Пользователь не найден",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/decks/{deckId}/cards": {
+      "get": {
+        "summary": "Вернуть карточки в заданной колоде",
+        "operationId": "getDeckCards",
+        "parameters": [
+          {
+            "name": "deckId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Список карточек в колоде",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeckCards"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Колода не найдена",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/decks/{deckId}/cards/add": {
+      "post": {
+        "summary": "Добавить карточку",
+        "operationId": "addCardToDeck",
+        "parameters": [
+          {
+            "name": "deckId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CardData"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Карточка успешно добавлена",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "404": {
+            "description": "Колода не найдена",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/decks/{deckId}/cards/edit/{cardId}": {
+      "put": {
+        "summary": "Изменить карточку",
+        "operationId": "editCardInDeck",
+        "parameters": [
+          {
+            "name": "deckId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "cardId",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "string"}
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EditCard"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Карточка успешно изменена",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "404": {
+            "description": "Карточка или колода не найдены",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/decks/{deckId}/cards/delete/{cardId}": {
+      "delete": {
+        "summary": "Удалить карточку",
+        "operationId": "deleteCardFromDeck",
+        "parameters": [
+          {
+            "name": "deckId",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "string"},
+          },
+          {
+            "name": "cardId",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "string"}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Карточка успешно удалена",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "404": {
+            "description": "Карточка или колода не найдены",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/decks/add": {
+      "post": {
+        "summary": "Добавить колоду",
+        "operationId": "addDeck",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeckData"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Колода успешно добавлена",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Ошибка валидации",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+
+              }
+            }
+          }
+        }
+      }
+    },
+      "/decks/edit/{deckId}": {
+      "put": {
+        "summary": "Изменить колоду",
+        "operationId": "editDeck",
+        "parameters": [
+          {
+            "name": "deckId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EditDeck"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Карточка успешно изменена",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "404": {
+            "description": "Карточка или колода не найдены",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/decks/delete/{deckId}": {
+      "delete": {
+        "summary": "Удалить колоду",
+        "operationId": "deleteDeck",
+        "parameters": [
+          {
+            "name": "deckId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Карточка успешно удалена",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "404": {
+            "description": "Карточка или колода не найдены",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/dailyRating": {
+      "get": {
+        "summary": "Вывести рейтинг за день",
+        "description": "Рейтинг за день",
+        "operationId": "getDailyRating",
+        "parameters": [
+        ],
+        "responses": {
+          "200": {
+            "description": "Рейтинг",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Rating"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/weeklyRating": {
+      "get": {
+        "summary": "Вывести рейтинг за день",
+        "description": "Рейтинг за неделю",
+        "operationId": "getMonthlyRating",
+        "parameters": [
+        ],
+        "responses": {
+          "200": {
+            "description": "Рейтинг",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Rating"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/allTimeRating": {
+      "get": {
+        "summary": "Вывести рейтинг за день",
+        "description": "Рейтинг за всё время",
+        "operationId": "getAllTimeRating",
+        "parameters": [
+        ],
+        "responses": {
+          "200": {
+            "description": "Рейтинг",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Rating"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+
+
+  "components": {
+    "schemas": {
+      "UserRegistrationData": {
+        "type": "object",
+        "required": ["username", "password", "email"],
+        "properties": {
+          "username": { "type": "string" },
+          "password": { "type": "string" },
+          "email": { "type": "string", "format": "email" },
+          "phone": { "type": "string" },
+          "country": { "type": "string" }
+        }
+      },
+      "UserLoginData": {
+        "type": "object",
+        "required": ["username", "password", "email"],
+        "properties": {
+          "username": { "type": "string" },
+          "password": { "type": "string" },
+          "email": { "type": "string", "format": "email" }
+        }
+      },
+      "UnauthorizedError": {},
+      "UserDecks": {
+        "type": "object",
+        "required": ["deckNames"],
+        "properties": {
+          "deckNames": { "type": "array", "items": {"type": "string"}},
+        }
+      },
+      "NotFoundError": {},
+      "ValidationError": {},
+      "DeckCards": {
+        "type": "object",
+        "required": ["cardNames"],
+        "properties": {
+          "deckNames": { "type": "array", "items": {"type": "string"}},
+        }},
+      "DeckData": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": {"type": "string"},
+          "description": {"type": "string"},
+        }},
+        "CardData": {
+        "type": "object",
+        "required": ["englishWord", "translation"],
+        "properties": {
+          "englishWord": {"type": "string"},
+          "translation": {"type": "string"},
+          "picture": {"type": "string"},
+        }},
+        "EditDeck":{
+          "type": "object",
+          "required": ["field", "newValue"],
+          "properties": {
+            "field": {
+              "type": "string",
+              "enum": ["name", "description"]
+            },
+            "newValue": {"type": "string"}
+        }},
+        "EditCard":{
+          "type": "object",
+          "required": ["field", "newValue"],
+          "properties": {
+            "field": {
+              "type": "string",
+              "enum": ["englishWord", "translation", "picture"]
+            },
+            "newValue": {"type": "string"}
+        }},
+        "Rating": {
+        "type": "object",
+        "required": ["rating"],
+        "properties": {
+          "deckNames": { "type": "array", "items": {"type": "string"}},
+        }}
+      }
+    }
+  }
