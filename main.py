@@ -4,7 +4,6 @@ from fastapi.responses import JSONResponse
 import db.db_functions as db_functions
 import authentification
 from schemas import *
-import ai
 from ai import generate_image, generate_translation, generate_card_recommendation, generate_deck_recommendation
 
 
