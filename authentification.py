@@ -10,7 +10,7 @@ from loguru import logger
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
-SECRET_KEY = "your-secret-key"  # Замените на свой секретный ключ
+SECRET_KEY = "your-secret-key"  # TODO: выпилить
 ALGORITHM = "HS256"
 
 

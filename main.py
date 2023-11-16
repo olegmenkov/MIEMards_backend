@@ -7,6 +7,9 @@ from schemas import *
 import ai
 from ai import generate_image, generate_translation, generate_card_recommendation, generate_deck_recommendation
 
+
+# TODO: протестить
+
 app = FastAPI()
 
 
