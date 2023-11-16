@@ -35,5 +35,21 @@ achievements = {
                                                       "decks_learned_partly": 3, "games": 5},
         datetime.strptime("17.10.2023", "%d.%m.%Y"): {"words_learned": 8, "decks_learned_fully": 1,
                                                       "decks_learned_partly": 2, "games": 3}
+    },
+    "1": {
+        datetime.strptime("16.11.2023", "%d.%m.%Y"): {"words_learned": 25, "decks_learned_fully": 8,
+                                                      "decks_learned_partly": 6, "games": 10},
+        datetime.strptime("14.11.2023", "%d.%m.%Y"): {"words_learned": 18, "decks_learned_fully": 4,
+                                                      "decks_learned_partly": 5, "games": 8},
+        datetime.strptime("17.10.2023", "%d.%m.%Y"): {"words_learned": 12, "decks_learned_fully": 2,
+                                                      "decks_learned_partly": 3, "games": 5}
+    },
+    "2": {
+        datetime.strptime("16.11.2023", "%d.%m.%Y"): {"words_learned": 18, "decks_learned_fully": 6,
+                                                      "decks_learned_partly": 4, "games": 8},
+        datetime.strptime("14.11.2023", "%d.%m.%Y"): {"words_learned": 22, "decks_learned_fully": 5,
+                                                      "decks_learned_partly": 7, "games": 9},
+        datetime.strptime("17.10.2023", "%d.%m.%Y"): {"words_learned": 14, "decks_learned_fully": 3,
+                                                      "decks_learned_partly": 4, "games": 6}
     }
 }

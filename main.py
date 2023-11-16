@@ -4,7 +4,8 @@ from fastapi.responses import JSONResponse
 import db.db_functions as db_functions
 import authentification
 from schemas import *
-
+import ai
+from ai import generate_image, generate_translation, generate_card_recommendation, generate_deck_recommendation
 
 app = FastAPI()
 
@@ -34,7 +35,6 @@ async def login(request_body: LoginModel):
 # Эндпоинт для редактирования профиля
 @app.put("/edit_profile")
 async def edit_profile(request_body: EditProfileModel, user_id: str = Depends(authentification.get_current_user)):
-
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
@@ -45,7 +45,6 @@ async def edit_profile(request_body: EditProfileModel, user_id: str = Depends(au
 # Эндпоинт для удаления профиля
 @app.delete("/delete_profile")
 async def delete_profile(user_id: str = Depends(authentification.get_current_user)):
-
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
@@ -55,7 +54,6 @@ async def delete_profile(user_id: str = Depends(authentification.get_current_use
 # Эндпоинт для создания колоды
 @app.post("/decks/add")
 async def create_deck(deck_data: DeckData, user_id: str = Depends(authentification.get_current_user)):
-
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
@@ -74,7 +72,6 @@ async def get_deck(request_body: GetDeckById, user_id: str = Depends(authentific
 # Эндпоинт для редактирования колоды
 @app.put("/decks/edit")
 async def edit_deck(request_body: EditDeckModel, user_id: str = Depends(authentification.get_current_user)):
-
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
@@ -97,7 +94,6 @@ async def delete_deck(request_body: DeleteDeckModel, user_id: str = Depends(auth
 # Эндпоинт для возвращения колод пользователя
 @app.get("/decks/show_users_decks")
 async def get_decks(user_id: str = Depends(authentification.get_current_user)):
-
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
@@ -109,7 +105,6 @@ async def get_decks(user_id: str = Depends(authentification.get_current_user)):
 # Эндпоинт для создания карты
 @app.post("/cards/add")
 async def create_card(card_data: CardData, user_id: str = Depends(authentification.get_current_user)):
-
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
@@ -128,7 +123,6 @@ async def get_deck(request_body: GetCardById, user_id: str = Depends(authentific
 # Эндпоинт для редактирования карты
 @app.put("/cards/edit")
 async def edit_card(request_body: EditCardModel, user_id: str = Depends(authentification.get_current_user)):
-
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
@@ -152,7 +146,6 @@ async def delete_card(request_body: DeleteCardModel, user_id: str = Depends(auth
 # Эндпоинт для возвращения карт в колоде
 @app.get("/cards/show_decks_cards")
 async def get_cards(request_body: GetDecksCards, user_id: str = Depends(authentification.get_current_user)):
-
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
@@ -161,5 +154,128 @@ async def get_cards(request_body: GetDecksCards, user_id: str = Depends(authenti
     return JSONResponse(content=cards)
 
 
-# @app.post("/rating/new_game_results")
-# async def new_game_results()
+@app.post("/statistics/new_game_results")
+async def new_game_results(request_body: GameResults, user_id: str = Depends(authentification.get_current_user)):
+    if not user_id:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    db_functions.update_achievements(user_id, request_body.words_learned, request_body.decks_learned_fully,
+                                     request_body.decks_learned_partly)
+
+    return {"message": "Updated user's achievements successfully"}
+
+
+@app.get("/statistics/for_today")
+async def statistics_for_today(user_id: str = Depends(authentification.get_current_user)):
+    if not user_id:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    total_words, fully_learned_decks, partly_learned_decks, total_games = db_functions.get_results_for_today(user_id)
+    ranking = db_functions.get_user_rank_for_day(user_id)
+
+    return JSONResponse(
+        content={"total_words": total_words, "ranking": ranking, "fully_learned_decks": fully_learned_decks,
+                 "partly_learned_decks": partly_learned_decks, "games": total_games})
+
+
+@app.get("/statistics/for_week")
+async def statistics_for_week(user_id: str = Depends(authentification.get_current_user)):
+    if not user_id:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    total_words, fully_learned_decks, partly_learned_decks, total_games = db_functions.get_weekly_results(user_id)
+
+    ranking = db_functions.get_user_rank_for_week(user_id)
+
+    return JSONResponse(
+        content={"total_words": total_words, "ranking": ranking, "fully_learned_decks": fully_learned_decks,
+                 "partly_learned_decks": partly_learned_decks, "games": total_games})
+
+
+@app.get("/statistics/for_alltime")
+async def statistics_alltime(user_id: str = Depends(authentification.get_current_user)):
+    if not user_id:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    total_words, fully_learned_decks, partly_learned_decks, total_games = db_functions.get_total_results(user_id)
+    ranking = db_functions.get_user_rank_for_total(user_id)
+
+    return JSONResponse(
+        content={"total_words": total_words, "ranking": ranking, "fully_learned_decks": fully_learned_decks,
+                 "partly_learned_decks": partly_learned_decks, "games": total_games})
+
+
+@app.get("/rankings/for_today")
+async def rankings_today(user_id: str = Depends(authentification.get_current_user)):
+    if not user_id:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    content = []  # упорядоченный список
+    top_all_today = db_functions.get_top_all_for_day()
+    for user_id, words_learned in top_all_today:
+        username = db_functions.get_username_by_id(user_id)
+        content.append({"username": username, "words learned": words_learned})
+
+
+@app.get("/rankings/for_week")
+async def rankings_week(user_id: str = Depends(authentification.get_current_user)):
+    if not user_id:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    content = []  # упорядоченный список
+    top_all_week = db_functions.get_top_all_for_week()
+    for user_id, words_learned in top_all_week:
+        username = db_functions.get_username_by_id(user_id)
+        content.append({"username": username, "words learned": words_learned})
+
+
+@app.get("/rankings/for_alltime")
+async def rankings_week(user_id: str = Depends(authentification.get_current_user)):
+    if not user_id:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    content = []  # упорядоченный список
+    top_all_total = db_functions.get_top_all_for_total()
+    for user_id, words_learned in top_all_total:
+        username = db_functions.get_username_by_id(user_id)
+        content.append({"username": username, "words learned": words_learned})
+
+
+@app.get("/generate/card")
+async def generate_card(request_body: Generate, user_id: str = Depends(authentification.get_current_user)):
+    if not user_id:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    ai.generate_card_recommendation.generate_card_recommendation(request_body.id)
+
+    return {'message': 'Success!'}
+
+
+@app.get("/generate/deck")
+async def generate_deck(request_body: Generate, user_id: str = Depends(authentification.get_current_user)):
+    if not user_id:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    ai.generate_deck_recommendation.generate_deck_recommendation(request_body.id)
+
+    return {'message': 'Success!'}
+
+
+@app.get("/generate/image")
+async def generate_image(request_body: Generate, user_id: str = Depends(authentification.get_current_user)):
+    if not user_id:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    ai.generate_image.generate_image(request_body.id)
+
+    return {'message': 'Success!'}
+
+
+@app.get("/generate/translation")
+async def generate_translation(request_body: Generate, user_id: str = Depends(authentification.get_current_user)):
+    if not user_id:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    ai.generate_translation.generate_translation(request_body.id)
+
+    return {'message': 'Success!'}

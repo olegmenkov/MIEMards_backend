@@ -70,3 +70,7 @@ class GameResults(BaseModel):
     words_learned: int
     decks_learned_fully: int
     decks_learned_partly: int
+
+
+class Generate(BaseModel):
+    id: str
