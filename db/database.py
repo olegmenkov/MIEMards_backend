@@ -13,7 +13,7 @@ users_table = {
 
 decks_table = {
     "0": {
-        "id": "d_id1", "creator": "1", "name": "A1", "description": "vocabulary for beginners"
+        "creator": "1", "name": "A1", "description": "vocabulary for beginners"
     }
 }
 

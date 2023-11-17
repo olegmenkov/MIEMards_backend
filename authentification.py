@@ -9,34 +9,43 @@ from dotenv import load_dotenv
 from loguru import logger
 
 
+# Используем протокол авторизации OAuth 2.0
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 
+# Загружаем секретный ключ для генерации токена из переменных среды
 load_dotenv()
 SECRET_KEY = os.getenv('SECRET_KEY')
 ALGORITHM = "HS256"
 
 
-# Функция для создания токена
 def create_access_token(data: dict):
-    to_encode = data.copy()
+    """
+    Создаёт токен
+    :param data: информация, которую надо зашифровать в токене
+    :return: токен
+    """
+    to_encode = data.copy()     # определяем, что кодировать (у нас это будет айди пользователя)
     expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    to_encode.update({"exp": expire})       # добавляем время, когда токен перестанет действовать
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)    # кодируем
     return encoded_jwt
 
 
-# Функция для получения текущего пользователя по токену
 def get_current_user(token: str = Depends(oauth2_scheme)):
-    credentials_exception = HTTPException(
+    """
+    Функция для получения текущего пользователя по токену
+    """
+
+    credentials_exception = HTTPException(      # ошибка
         status_code=401,
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        user_id: str = payload.get("sub")
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])     # раскодируем инфу
+        user_id: str = payload.get("sub")   # получаем оттуда id
         if user_id is None:
             raise credentials_exception
         return user_id

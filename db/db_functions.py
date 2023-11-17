@@ -96,7 +96,7 @@ def get_users_decks(user_id: str):
 def add_card(english_word: str, translation: str, explanation: str, deck_id: str, user_id: str):
     check_deck_for_user(user_id, deck_id)
     card_id = str(len(cards_table))
-    decks_table[deck_id] = {"english_word": english_word, "translation": translation, "explanation": explanation,
+    cards_table[card_id] = {"english_word": english_word, "translation": translation, "explanation": explanation,
                             "deck_id": deck_id}
     return card_id
 
