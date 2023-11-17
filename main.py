@@ -1,10 +1,15 @@
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.responses import JSONResponse
 
+import ai
+from ai.generate_image import generate_image
+from ai.generate_translation import generate_translation
+from ai.generate_card_recommendation import generate_card_recommendation
+from ai.generate_deck_recommendation import generate_deck_recommendation
+
 import db.db_functions as db_functions
 import authentification
 from schemas import *
-from ai import generate_image, generate_translation, generate_card_recommendation, generate_deck_recommendation
 
 
 # TODO: протестить

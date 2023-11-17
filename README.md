@@ -1,17 +1,32 @@
 # MIEMards_backend
-## Установить зависимости:
 
-```pip install -r requirements.txt```
+Все команды выполняются в папке MIEMards_backend
+
+## Добавить файл .env 
+При локальном запуске нужно создать в корневой директории MIEMards_backend файл ".env" и вписать в него следующее:
+```
+SECRET_KEY=your-secret-key
+```
+без пробелов и кавычек. Замените ```your-secret-key``` на секретный ключ для шифрования
+
+## Установить зависимости
+
+```shell
+pip install -r requirements.txt
+```
 
 или
 
-```pip3 install -r requirements.txt```
+```shell
+pip3 install -r requirements.txt
+```
 
-## Запустить приложение:
+## Запустить приложение
 
-```uvicorn main:app --reload```
+```shell
+uvicorn main:app --reload
+```
 
-Все команды выполняются в папке MIEMards_backend
 
 ## Запустить тесты
 

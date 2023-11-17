@@ -4,13 +4,17 @@ from jose import JWTError, jwt
 import datetime
 from datetime import datetime
 from datetime import timedelta
+import os
+from dotenv import load_dotenv
 from loguru import logger
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
-SECRET_KEY = "your-secret-key"  # TODO: выпилить
+
+load_dotenv()
+SECRET_KEY = os.getenv('SECRET_KEY')
 ALGORITHM = "HS256"
 
 

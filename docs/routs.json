@@ -1,563 +1,1204 @@
 {
-  "openapi": "3.0.2",
-  "info": {
-    "title": "Flashcards API",
-    "version": "1.0.0"
-  },
-  "paths": {
-    "/register_user": {
-      "post": {
-        "summary": "Регистрация пользователя",
-        "description": "Регистрация нового пользователя в системе",
-        "operationId": "registerUser",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UserRegistrationData"
-              }
+    "openapi": "3.1.0",
+    "info": {
+        "title": "FastAPI",
+        "version": "0.1.0"
+    },
+    "paths": {
+        "/register": {
+            "post": {
+                "summary": "Register",
+                "operationId": "register_register_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RegisterModel"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
             }
-          },
-          "required": true
         },
-        "responses": {
-          "200": {
-            "description": "Успешная регистрация",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Ошибка валидации",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ValidationError"
+        "/login": {
+            "post": {
+                "summary": "Login",
+                "operationId": "login_login_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/LoginModel"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
                 }
-              }
             }
-          }
-        }
-      }
-    },
-    "/login": {
-      "post": {
-        "summary": "Вход пользователя",
-        "description": "Аутентификация пользователя в системе",
-        "operationId": "loginUser",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UserLoginData"
-              }
-            }
-          },
-          "required": true
         },
-        "responses": {
-          "200": {
-            "description": "Успешный вход",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
+        "/edit_profile": {
+            "put": {
+                "summary": "Edit Profile",
+                "operationId": "edit_profile_edit_profile_put",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/EditProfileModel"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
             }
-          },
-          "401": {
-            "description": "Неверные учетные данные",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UnauthorizedError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/{userId}/decks": {
-      "get": {
-        "summary": "Вернуть колоды заданного пользователя",
-        "description": "Получение списка колод для указанного пользователя",
-        "operationId": "getUserDecks",
-        "parameters": [
-          {
-            "name": "userId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Список колод пользователя",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UserDecks"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Пользователь не найден",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/NotFoundError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/decks/{deckId}/cards": {
-      "get": {
-        "summary": "Вернуть карточки в заданной колоде",
-        "operationId": "getDeckCards",
-        "parameters": [
-          {
-            "name": "deckId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Список карточек в колоде",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DeckCards"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Колода не найдена",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/NotFoundError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/decks/{deckId}/cards/add": {
-      "post": {
-        "summary": "Добавить карточку",
-        "operationId": "addCardToDeck",
-        "parameters": [
-          {
-            "name": "deckId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CardData"
-              }
-            }
-          },
-          "required": true
         },
-        "responses": {
-          "200": {
-            "description": "Карточка успешно добавлена",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
+        "/delete_profile": {
+            "delete": {
+                "summary": "Delete Profile",
+                "operationId": "delete_profile_delete_profile_delete",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
             }
-          },
-          "404": {
-            "description": "Колода не найдена",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/NotFoundError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/decks/{deckId}/cards/edit/{cardId}": {
-      "put": {
-        "summary": "Изменить карточку",
-        "operationId": "editCardInDeck",
-        "parameters": [
-          {
-            "name": "deckId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "cardId",
-            "in": "path",
-            "required": true,
-            "schema": {"type": "string"}
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/EditCard"
-              }
-            }
-          },
-          "required": true
         },
-        "responses": {
-          "200": {
-            "description": "Карточка успешно изменена",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
+        "/decks/add": {
+            "post": {
+                "summary": "Create Deck",
+                "operationId": "create_deck_decks_add_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DeckData"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
             }
-          },
-          "404": {
-            "description": "Карточка или колода не найдены",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/NotFoundError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/decks/{deckId}/cards/delete/{cardId}": {
-      "delete": {
-        "summary": "Удалить карточку",
-        "operationId": "deleteCardFromDeck",
-        "parameters": [
-          {
-            "name": "deckId",
-            "in": "path",
-            "required": true,
-            "schema": {"type": "string"},
-          },
-          {
-            "name": "cardId",
-            "in": "path",
-            "required": true,
-            "schema": {"type": "string"}
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Карточка успешно удалена",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "404": {
-            "description": "Карточка или колода не найдены",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/NotFoundError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/decks/add": {
-      "post": {
-        "summary": "Добавить колоду",
-        "operationId": "addDeck",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/DeckData"
-              }
-            }
-          },
-          "required": true
         },
-        "responses": {
-          "200": {
-            "description": "Колода успешно добавлена",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
+        "/decks/get": {
+            "get": {
+                "summary": "Get Deck",
+                "operationId": "get_deck_decks_get_get",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/GetDeckById"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
             }
-          },
-          "422": {
-            "description": "Ошибка валидации",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ValidationError"
-                }
-
-              }
-            }
-          }
-        }
-      }
-    },
-      "/decks/edit/{deckId}": {
-      "put": {
-        "summary": "Изменить колоду",
-        "operationId": "editDeck",
-        "parameters": [
-          {
-            "name": "deckId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/EditDeck"
-              }
-            }
-          },
-          "required": true
         },
-        "responses": {
-          "200": {
-            "description": "Карточка успешно изменена",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
+        "/decks/edit": {
+            "put": {
+                "summary": "Edit Deck",
+                "operationId": "edit_deck_decks_edit_put",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/EditDeckModel"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
             }
-          },
-          "404": {
-            "description": "Карточка или колода не найдены",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/NotFoundError"
-                }
-              }
+        },
+        "/decks/remove": {
+            "delete": {
+                "summary": "Delete Deck",
+                "operationId": "delete_deck_decks_remove_delete",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DeleteDeckModel"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
             }
-          }
+        },
+        "/decks/show_users_decks": {
+            "get": {
+                "summary": "Get Decks",
+                "operationId": "get_decks_decks_show_users_decks_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            }
+        },
+        "/cards/add": {
+            "post": {
+                "summary": "Create Card",
+                "operationId": "create_card_cards_add_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CardData"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            }
+        },
+        "/cards/get": {
+            "get": {
+                "summary": "Get Deck",
+                "operationId": "get_deck_cards_get_get",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/GetCardById"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            }
+        },
+        "/cards/edit": {
+            "put": {
+                "summary": "Edit Card",
+                "operationId": "edit_card_cards_edit_put",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/EditCardModel"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            }
+        },
+        "/cards/remove": {
+            "delete": {
+                "summary": "Delete Card",
+                "operationId": "delete_card_cards_remove_delete",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DeleteCardModel"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            }
+        },
+        "/cards/show_decks_cards": {
+            "get": {
+                "summary": "Get Cards",
+                "operationId": "get_cards_cards_show_decks_cards_get",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/GetDecksCards"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            }
+        },
+        "/statistics/new_game_results": {
+            "post": {
+                "summary": "New Game Results",
+                "operationId": "new_game_results_statistics_new_game_results_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/GameResults"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            }
+        },
+        "/statistics/for_today": {
+            "get": {
+                "summary": "Statistics For Today",
+                "operationId": "statistics_for_today_statistics_for_today_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            }
+        },
+        "/statistics/for_week": {
+            "get": {
+                "summary": "Statistics For Week",
+                "operationId": "statistics_for_week_statistics_for_week_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            }
+        },
+        "/statistics/for_alltime": {
+            "get": {
+                "summary": "Statistics Alltime",
+                "operationId": "statistics_alltime_statistics_for_alltime_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            }
+        },
+        "/rankings/for_today": {
+            "get": {
+                "summary": "Rankings Today",
+                "operationId": "rankings_today_rankings_for_today_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            }
+        },
+        "/rankings/for_week": {
+            "get": {
+                "summary": "Rankings Week",
+                "operationId": "rankings_week_rankings_for_week_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            }
+        },
+        "/rankings/for_alltime": {
+            "get": {
+                "summary": "Rankings Week",
+                "operationId": "rankings_week_rankings_for_alltime_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            }
+        },
+        "/generate/card": {
+            "get": {
+                "summary": "Generate Card",
+                "operationId": "generate_card_generate_card_get",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Generate"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            }
+        },
+        "/generate/deck": {
+            "get": {
+                "summary": "Generate Deck",
+                "operationId": "generate_deck_generate_deck_get",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Generate"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            }
+        },
+        "/generate/image": {
+            "get": {
+                "summary": "Generate Image",
+                "operationId": "generate_image_generate_image_get",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Generate"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            }
+        },
+        "/generate/translation": {
+            "get": {
+                "summary": "Generate Translation",
+                "operationId": "generate_translation_generate_translation_get",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Generate"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ]
+            }
         }
-      }
     },
-    "/decks/delete/{deckId}": {
-      "delete": {
-        "summary": "Удалить колоду",
-        "operationId": "deleteDeck",
-        "parameters": [
-          {
-            "name": "deckId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Карточка успешно удалена",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "404": {
-            "description": "Карточка или колода не найдены",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/NotFoundError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/dailyRating": {
-      "get": {
-        "summary": "Вывести рейтинг за день",
-        "description": "Рейтинг за день",
-        "operationId": "getDailyRating",
-        "parameters": [
-        ],
-        "responses": {
-          "200": {
-            "description": "Рейтинг",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Rating"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/weeklyRating": {
-      "get": {
-        "summary": "Вывести рейтинг за день",
-        "description": "Рейтинг за неделю",
-        "operationId": "getMonthlyRating",
-        "parameters": [
-        ],
-        "responses": {
-          "200": {
-            "description": "Рейтинг",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Rating"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/allTimeRating": {
-      "get": {
-        "summary": "Вывести рейтинг за день",
-        "description": "Рейтинг за всё время",
-        "operationId": "getAllTimeRating",
-        "parameters": [
-        ],
-        "responses": {
-          "200": {
-            "description": "Рейтинг",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Rating"
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  },
-
-
-  "components": {
-    "schemas": {
-      "UserRegistrationData": {
-        "type": "object",
-        "required": ["username", "password", "email"],
-        "properties": {
-          "username": { "type": "string" },
-          "password": { "type": "string" },
-          "email": { "type": "string", "format": "email" },
-          "phone": { "type": "string" },
-          "country": { "type": "string" }
-        }
-      },
-      "UserLoginData": {
-        "type": "object",
-        "required": ["username", "password", "email"],
-        "properties": {
-          "username": { "type": "string" },
-          "password": { "type": "string" },
-          "email": { "type": "string", "format": "email" }
-        }
-      },
-      "UnauthorizedError": {},
-      "UserDecks": {
-        "type": "object",
-        "required": ["deckNames"],
-        "properties": {
-          "deckNames": { "type": "array", "items": {"type": "string"}},
-        }
-      },
-      "NotFoundError": {},
-      "ValidationError": {},
-      "DeckCards": {
-        "type": "object",
-        "required": ["cardNames"],
-        "properties": {
-          "deckNames": { "type": "array", "items": {"type": "string"}},
-        }},
-      "DeckData": {
-        "type": "object",
-        "required": ["name"],
-        "properties": {
-          "name": {"type": "string"},
-          "description": {"type": "string"},
-        }},
-        "CardData": {
-        "type": "object",
-        "required": ["englishWord", "translation"],
-        "properties": {
-          "englishWord": {"type": "string"},
-          "translation": {"type": "string"},
-          "picture": {"type": "string"},
-        }},
-        "EditDeck":{
-          "type": "object",
-          "required": ["field", "newValue"],
-          "properties": {
-            "field": {
-              "type": "string",
-              "enum": ["name", "description"]
+    "components": {
+        "schemas": {
+            "CardData": {
+                "properties": {
+                    "english_word": {
+                        "type": "string",
+                        "title": "English Word"
+                    },
+                    "translation": {
+                        "type": "string",
+                        "title": "Translation"
+                    },
+                    "explanation": {
+                        "type": "string",
+                        "title": "Explanation"
+                    },
+                    "deck_id": {
+                        "type": "string",
+                        "title": "Deck Id"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "english_word",
+                    "translation",
+                    "explanation",
+                    "deck_id"
+                ],
+                "title": "CardData"
             },
-            "newValue": {"type": "string"}
-        }},
-        "EditCard":{
-          "type": "object",
-          "required": ["field", "newValue"],
-          "properties": {
-            "field": {
-              "type": "string",
-              "enum": ["englishWord", "translation", "picture"]
+            "DeckData": {
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "title": "Name"
+                    },
+                    "description": {
+                        "type": "string",
+                        "title": "Description"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "name",
+                    "description"
+                ],
+                "title": "DeckData"
             },
-            "newValue": {"type": "string"}
-        }},
-        "Rating": {
-        "type": "object",
-        "required": ["rating"],
-        "properties": {
-          "deckNames": { "type": "array", "items": {"type": "string"}},
-        }}
-      }
+            "DeleteCardModel": {
+                "properties": {
+                    "card_id": {
+                        "type": "string",
+                        "title": "Card Id"
+                    },
+                    "deck": {
+                        "type": "string",
+                        "title": "Deck"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "card_id",
+                    "deck"
+                ],
+                "title": "DeleteCardModel"
+            },
+            "DeleteDeckModel": {
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "title": "Id"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "id"
+                ],
+                "title": "DeleteDeckModel"
+            },
+            "EditCardModel": {
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "title": "Id"
+                    },
+                    "deck": {
+                        "type": "string",
+                        "title": "Deck"
+                    },
+                    "field_to_change": {
+                        "type": "string",
+                        "title": "Field To Change"
+                    },
+                    "new_value": {
+                        "type": "string",
+                        "title": "New Value"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "id",
+                    "deck",
+                    "field_to_change",
+                    "new_value"
+                ],
+                "title": "EditCardModel"
+            },
+            "EditDeckModel": {
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "title": "Id"
+                    },
+                    "field_to_change": {
+                        "type": "string",
+                        "title": "Field To Change"
+                    },
+                    "new_value": {
+                        "type": "string",
+                        "title": "New Value"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "id",
+                    "field_to_change",
+                    "new_value"
+                ],
+                "title": "EditDeckModel"
+            },
+            "EditProfileModel": {
+                "properties": {
+                    "field_to_change": {
+                        "type": "string",
+                        "title": "Field To Change"
+                    },
+                    "new_value": {
+                        "type": "string",
+                        "title": "New Value"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "field_to_change",
+                    "new_value"
+                ],
+                "title": "EditProfileModel"
+            },
+            "GameResults": {
+                "properties": {
+                    "words_learned": {
+                        "type": "integer",
+                        "title": "Words Learned"
+                    },
+                    "decks_learned_fully": {
+                        "type": "integer",
+                        "title": "Decks Learned Fully"
+                    },
+                    "decks_learned_partly": {
+                        "type": "integer",
+                        "title": "Decks Learned Partly"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "words_learned",
+                    "decks_learned_fully",
+                    "decks_learned_partly"
+                ],
+                "title": "GameResults"
+            },
+            "Generate": {
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "title": "Id"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "id"
+                ],
+                "title": "Generate"
+            },
+            "GetCardById": {
+                "properties": {
+                    "card_id": {
+                        "type": "string",
+                        "title": "Card Id"
+                    },
+                    "deck": {
+                        "type": "string",
+                        "title": "Deck"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "card_id",
+                    "deck"
+                ],
+                "title": "GetCardById"
+            },
+            "GetDeckById": {
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "title": "Id"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "id"
+                ],
+                "title": "GetDeckById"
+            },
+            "GetDecksCards": {
+                "properties": {
+                    "deck_id": {
+                        "type": "string",
+                        "title": "Deck Id"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "deck_id"
+                ],
+                "title": "GetDecksCards"
+            },
+            "HTTPValidationError": {
+                "properties": {
+                    "detail": {
+                        "items": {
+                            "$ref": "#/components/schemas/ValidationError"
+                        },
+                        "type": "array",
+                        "title": "Detail"
+                    }
+                },
+                "type": "object",
+                "title": "HTTPValidationError"
+            },
+            "LoginModel": {
+                "properties": {
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "title": "Email"
+                    },
+                    "password": {
+                        "type": "string",
+                        "title": "Password"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "email",
+                    "password"
+                ],
+                "title": "LoginModel"
+            },
+            "RegisterModel": {
+                "properties": {
+                    "username": {
+                        "type": "string",
+                        "title": "Username"
+                    },
+                    "password": {
+                        "type": "string",
+                        "title": "Password"
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "title": "Email"
+                    },
+                    "phone": {
+                        "type": "string",
+                        "title": "Phone"
+                    },
+                    "country": {
+                        "type": "string",
+                        "title": "Country"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "username",
+                    "password",
+                    "email",
+                    "phone",
+                    "country"
+                ],
+                "title": "RegisterModel"
+            },
+            "ValidationError": {
+                "properties": {
+                    "loc": {
+                        "items": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ]
+                        },
+                        "type": "array",
+                        "title": "Location"
+                    },
+                    "msg": {
+                        "type": "string",
+                        "title": "Message"
+                    },
+                    "type": {
+                        "type": "string",
+                        "title": "Error Type"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "loc",
+                    "msg",
+                    "type"
+                ],
+                "title": "ValidationError"
+            }
+        },
+        "securitySchemes": {
+            "OAuth2PasswordBearer": {
+                "type": "oauth2",
+                "flows": {
+                    "password": {
+                        "scopes": {},
+                        "tokenUrl": "token"
+                    }
+                }
+            }
+        }
     }
-  }
+}
