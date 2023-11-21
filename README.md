@@ -21,6 +21,10 @@ pip install -r requirements.txt
 pip3 install -r requirements.txt
 ```
 
+**!ВАЖНО!**
+
+**Выполнять установку нужно в консоли от имени администратора**
+
 ## Запустить приложение
 
 ```shell
