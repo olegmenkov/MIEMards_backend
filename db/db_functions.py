@@ -18,7 +18,7 @@ def add_user_to_db(username: str, password: str, email: EmailStr, phone: str, co
 
 
 def find_user_by_login_data(email: str, password: str):
-    return next((user_id for user_id in users_table if
+    return next(([user_id, users_table[user_id]] for user_id in users_table if
                  users_table[user_id]["email"] == email and users_table[user_id]["password"] == password), None)
 
 

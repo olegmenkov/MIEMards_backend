@@ -40,9 +40,9 @@ async def register(request_body: RegisterModel):
     Регистрирует в БД нового пользователя со всеми полями, указанными при регистрации
     """
 
-    user_id = db_functions.add_user_to_db(request_body.username, request_body.password, request_body.email,
+    db_functions.add_user_to_db(request_body.username, request_body.password, request_body.email,
                                 request_body.phone, request_body.country)
-    return JSONResponse(content={"user_id": user_id})
+    return JSONResponse(content={"message": "User registered successfully"})
 
 
 @app.post("/login")
@@ -55,11 +55,19 @@ async def login(request_body: LoginModel):
     if not found_user:
         raise HTTPException(status_code=401, detail="Invalid email or password")
 
+    user_id, user_data = found_user
+
     # Создаем токен
     access_token = authentification.create_access_token(data={"sub": str(found_user)})
 
     # Возвращаем токен в ответе
-    return JSONResponse(content={"access_token": access_token, "token_type": "bearer"})
+    return JSONResponse(content={"access_token": access_token, "token_type": "bearer",
+                                 "user_id": user_id,
+                                 "username": user_data["username"],
+                                 "password": user_data["password"],
+                                 "email": user_data["email"],
+                                 "phone": user_data["phone"],
+                                 "country": user_data["country"]})
 
 
 @app.put("/edit_profile")
