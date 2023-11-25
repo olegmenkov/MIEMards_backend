@@ -8,6 +8,7 @@
         "/register": {
             "post": {
                 "summary": "Register",
+                "description": "Регистрирует в БД нового пользователя со всеми полями, указанными при регистрации",
                 "operationId": "register_register_post",
                 "requestBody": {
                     "content": {
@@ -44,6 +45,7 @@
         "/login": {
             "post": {
                 "summary": "Login",
+                "description": "Проверяет, существует ли пользователь с таким логином и паролем. Если да, возвращает токен для дальнейшего доступа",
                 "operationId": "login_login_post",
                 "requestBody": {
                     "content": {
@@ -80,6 +82,7 @@
         "/edit_profile": {
             "put": {
                 "summary": "Edit Profile",
+                "description": "Редактирует указанное поле в профиле пользователя, если такое есть",
                 "operationId": "edit_profile_edit_profile_put",
                 "requestBody": {
                     "content": {
@@ -121,6 +124,7 @@
         "/delete_profile": {
             "delete": {
                 "summary": "Delete Profile",
+                "description": "Удаляет профиль пользователя",
                 "operationId": "delete_profile_delete_profile_delete",
                 "responses": {
                     "200": {
@@ -142,6 +146,7 @@
         "/decks/add": {
             "post": {
                 "summary": "Create Deck",
+                "description": "Создаёт новую колоду, принадлежащую данному пользователю",
                 "operationId": "create_deck_decks_add_post",
                 "requestBody": {
                     "content": {
@@ -183,6 +188,7 @@
         "/decks/get": {
             "get": {
                 "summary": "Get Deck",
+                "description": "Возвращает информацию о колоде по её ID в следующем формате:\n{\"creator\": \"userId\", \"name\": \"deckName\", \"description\": \"deckDescription\"}",
                 "operationId": "get_deck_decks_get_get",
                 "requestBody": {
                     "content": {
@@ -224,6 +230,7 @@
         "/decks/edit": {
             "put": {
                 "summary": "Edit Deck",
+                "description": "Редактирует указанное поле для колоды, если такое есть",
                 "operationId": "edit_deck_decks_edit_put",
                 "requestBody": {
                     "content": {
@@ -265,6 +272,7 @@
         "/decks/remove": {
             "delete": {
                 "summary": "Delete Deck",
+                "description": "Удаляет колоду",
                 "operationId": "delete_deck_decks_remove_delete",
                 "requestBody": {
                     "content": {
@@ -306,6 +314,7 @@
         "/decks/show_users_decks": {
             "get": {
                 "summary": "Get Decks",
+                "description": "Возвращает все колоды данного пользователя в таком формате\n{\n    \"deckId\": {\n        \"creator\": \"userId\", \"name\": \"deckName\", \"description\": \"deckDescription\"\n    },\n    \"deckId2\": {\n        \"creator\": \"userId\", \"name\": \"deckName2\", \"description\": \"deckDescription2\"\n    },\n    ...\n }",
                 "operationId": "get_decks_decks_show_users_decks_get",
                 "responses": {
                     "200": {
@@ -327,6 +336,7 @@
         "/cards/add": {
             "post": {
                 "summary": "Create Card",
+                "description": "Создаёт новую карту в колоде пользователя",
                 "operationId": "create_card_cards_add_post",
                 "requestBody": {
                     "content": {
@@ -368,6 +378,7 @@
         "/cards/get": {
             "get": {
                 "summary": "Get Deck",
+                "description": "Возвращает информацию по карточке по её ID в следующем формате\n{\"english_word\": \"englishWord\", \"translation\": \"translation\", \"explanation\": \"explanation\",\n                        \"deck_id\": \"deckId\"}",
                 "operationId": "get_deck_cards_get_get",
                 "requestBody": {
                     "content": {
@@ -409,6 +420,7 @@
         "/cards/edit": {
             "put": {
                 "summary": "Edit Card",
+                "description": "Редактирует поле для карточки в колоде, если такое поле есть",
                 "operationId": "edit_card_cards_edit_put",
                 "requestBody": {
                     "content": {
@@ -450,6 +462,7 @@
         "/cards/remove": {
             "delete": {
                 "summary": "Delete Card",
+                "description": "Удаляет карточку из колоды пользователя",
                 "operationId": "delete_card_cards_remove_delete",
                 "requestBody": {
                     "content": {
@@ -491,6 +504,7 @@
         "/cards/show_decks_cards": {
             "get": {
                 "summary": "Get Cards",
+                "description": "Возвращает все карты в заданной колоде в формате\n{\n    \"cardId\": {\n        \"deck\": \"deckId\", \"english_word\": \"englishWord\", \"translation\": \"translation\", \"explanation\": \"explanation\"\n    },\n    \"cardId2\": {\n        \"deck\": \"deckId2\", \"english_word\": \"englishWord2\", \"translation\": \"translation2\", \"explanation\": \"explanation2\"\n    },\n    ...\n}",
                 "operationId": "get_cards_cards_show_decks_cards_get",
                 "requestBody": {
                     "content": {
@@ -532,6 +546,7 @@
         "/statistics/new_game_results": {
             "post": {
                 "summary": "New Game Results",
+                "description": "Принимает результаты очередной игры и обновляет таблицу достижений пользователя",
                 "operationId": "new_game_results_statistics_new_game_results_post",
                 "requestBody": {
                     "content": {
@@ -573,6 +588,7 @@
         "/statistics/for_today": {
             "get": {
                 "summary": "Statistics For Today",
+                "description": "Считает и отправляет статистику успехов пользователя за сегодня",
                 "operationId": "statistics_for_today_statistics_for_today_get",
                 "responses": {
                     "200": {
@@ -594,6 +610,7 @@
         "/statistics/for_week": {
             "get": {
                 "summary": "Statistics For Week",
+                "description": "Считает и отправляет статистику успехов пользователя за неделю",
                 "operationId": "statistics_for_week_statistics_for_week_get",
                 "responses": {
                     "200": {
@@ -615,6 +632,7 @@
         "/statistics/for_alltime": {
             "get": {
                 "summary": "Statistics Alltime",
+                "description": "Считает и отправляет статистику успехов пользователя за всё время",
                 "operationId": "statistics_alltime_statistics_for_alltime_get",
                 "responses": {
                     "200": {
@@ -636,6 +654,7 @@
         "/rankings/for_today": {
             "get": {
                 "summary": "Rankings Today",
+                "description": "Считает и отправляет топ пользователей за сегодня",
                 "operationId": "rankings_today_rankings_for_today_get",
                 "responses": {
                     "200": {
@@ -657,6 +676,7 @@
         "/rankings/for_week": {
             "get": {
                 "summary": "Rankings Week",
+                "description": "Считает и отправляет топ пользователей за неделю",
                 "operationId": "rankings_week_rankings_for_week_get",
                 "responses": {
                     "200": {
@@ -678,6 +698,7 @@
         "/rankings/for_alltime": {
             "get": {
                 "summary": "Rankings Week",
+                "description": "Считает и отправляет топ пользователей за всё время",
                 "operationId": "rankings_week_rankings_for_alltime_get",
                 "responses": {
                     "200": {
@@ -699,6 +720,7 @@
         "/generate/card": {
             "get": {
                 "summary": "Generate Card",
+                "description": "Генерирует карточку для данной колоды",
                 "operationId": "generate_card_generate_card_get",
                 "requestBody": {
                     "content": {
@@ -740,6 +762,7 @@
         "/generate/deck": {
             "get": {
                 "summary": "Generate Deck",
+                "description": "Генерирует колоду для данного пользователя",
                 "operationId": "generate_deck_generate_deck_get",
                 "requestBody": {
                     "content": {
@@ -781,6 +804,7 @@
         "/generate/image": {
             "get": {
                 "summary": "Generate Image",
+                "description": "Генерирует изображение для данной карточки",
                 "operationId": "generate_image_generate_image_get",
                 "requestBody": {
                     "content": {
@@ -822,6 +846,7 @@
         "/generate/translation": {
             "get": {
                 "summary": "Generate Translation",
+                "description": "Генерирует перевод для данной карточки",
                 "operationId": "generate_translation_generate_translation_get",
                 "requestBody": {
                     "content": {
