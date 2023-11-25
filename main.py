@@ -42,7 +42,7 @@ async def register(request_body: RegisterModel):
 
     user_id = db_functions.add_user_to_db(request_body.username, request_body.password, request_body.email,
                                 request_body.phone, request_body.country)
-    return {"user_id": user_id}
+    return JSONResponse(content={"user_id": user_id})
 
 
 @app.post("/login")
@@ -59,7 +59,7 @@ async def login(request_body: LoginModel):
     access_token = authentification.create_access_token(data={"sub": str(found_user)})
 
     # Возвращаем токен в ответе
-    return {"access_token": access_token, "token_type": "bearer"}
+    return JSONResponse(content={"access_token": access_token, "token_type": "bearer"})
 
 
 @app.put("/edit_profile")
@@ -74,6 +74,8 @@ async def edit_profile(request_body: EditProfileModel, user_id: str = Depends(au
     if request_body.field_to_change in ["username", "password", "email", "phone", "country"]:
         db_functions.edit_users_profile(user_id, request_body.field_to_change, request_body.new_value)
 
+    return JSONResponse(content={"message": "Profile edited successfully"})
+
 
 @app.delete("/delete_profile")
 async def delete_profile(user_id: str = Depends(authentification.get_current_user)):
@@ -85,6 +87,8 @@ async def delete_profile(user_id: str = Depends(authentification.get_current_use
         raise HTTPException(status_code=404, detail="User not found")
 
     db_functions.delete_user_from_db(user_id)
+
+    return JSONResponse(content={"message": "Profile deleted successfully"})
 
 
 @app.post("/decks/add")
@@ -125,7 +129,7 @@ async def edit_deck(request_body: EditDeckModel, user_id: str = Depends(authenti
     if request_body.field_to_change in ["name", "description"]:
         db_functions.edit_deck_in_db(user_id, request_body.id, request_body.field_to_change, request_body.new_value)
 
-    return {"message": "Deck edited successfully"}
+    return JSONResponse(content={"message": "Deck edited successfully"})
 
 
 # Эндпоинт для удаления колоды
@@ -139,7 +143,8 @@ async def delete_deck(request_body: DeleteDeckModel, user_id: str = Depends(auth
         raise HTTPException(status_code=404, detail="User not found")
 
     db_functions.delete_deck_from_db(user_id, request_body.id)
-    return {"message": "Deck deleted successfully"}
+    
+    return JSONResponse(content={"message": "Deck deleted successfully"})
 
 
 @app.get("/decks/show_users_decks")
@@ -205,7 +210,7 @@ async def edit_card(request_body: EditCardModel, user_id: str = Depends(authenti
         db_functions.edit_card_in_db(user_id, request_body.deck, request_body.id, request_body.field_to_change,
                                      request_body.new_value)
 
-    return {"message": "Card edited successfully"}
+    return JSONResponse(content={"message": "Card edited successfully"})
 
 
 @app.delete("/cards/remove")
@@ -218,7 +223,7 @@ async def delete_card(request_body: DeleteCardModel, user_id: str = Depends(auth
         raise HTTPException(status_code=404, detail="User not found")
 
     db_functions.delete_card_from_db(user_id, request_body.deck, request_body.card_id)
-    return {"message": "Card deleted successfully"}
+    return JSONResponse(content={"message": "Card deleted successfully"})
 
 
 # Эндпоинт для возвращения карт в колоде
@@ -257,7 +262,7 @@ async def new_game_results(request_body: GameResults, user_id: str = Depends(aut
     db_functions.update_achievements(user_id, request_body.words_learned, request_body.decks_learned_fully,
                                      request_body.decks_learned_partly)
 
-    return {"message": "Updated user's achievements successfully"}
+    return JSONResponse(content={"message": "Updated user's achievements successfully"})
 
 
 @app.get("/statistics/for_today")
@@ -327,6 +332,8 @@ async def rankings_today(user_id: str = Depends(authentification.get_current_use
         username = db_functions.get_username_by_id(user_id)
         content.append({"username": username, "words learned": words_learned})
 
+    return JSONResponse(content=content)
+
 
 @app.get("/rankings/for_week")
 async def rankings_week(user_id: str = Depends(authentification.get_current_user)):
@@ -342,6 +349,8 @@ async def rankings_week(user_id: str = Depends(authentification.get_current_user
     for user_id, words_learned in top_all_week:
         username = db_functions.get_username_by_id(user_id)
         content.append({"username": username, "words learned": words_learned})
+
+    return JSONResponse(content=content)
 
 
 @app.get("/rankings/for_alltime")
@@ -359,6 +368,8 @@ async def rankings_week(user_id: str = Depends(authentification.get_current_user
         username = db_functions.get_username_by_id(user_id)
         content.append({"username": username, "words learned": words_learned})
 
+    return JSONResponse(content=content)
+
 
 @app.get("/generate/card")
 async def generate_card(request_body: Generate, user_id: str = Depends(authentification.get_current_user)):
@@ -371,7 +382,7 @@ async def generate_card(request_body: Generate, user_id: str = Depends(authentif
 
     ai.generate_card_recommendation.generate_card_recommendation(request_body.id)
 
-    return {'message': 'Success!'}
+    return JSONResponse(content={'message': 'Success!'})
 
 
 @app.get("/generate/deck")
@@ -385,7 +396,7 @@ async def generate_deck(request_body: Generate, user_id: str = Depends(authentif
 
     ai.generate_deck_recommendation.generate_deck_recommendation(request_body.id)
 
-    return {'message': 'Success!'}
+    return JSONResponse(content={'message': 'Success!'})
 
 
 @app.get("/generate/image")
@@ -399,7 +410,7 @@ async def generate_image(request_body: Generate, user_id: str = Depends(authenti
 
     ai.generate_image.generate_image(request_body.id)
 
-    return {'message': 'Success!'}
+    return JSONResponse(content={'message': 'Success!'})
 
 
 @app.get("/generate/translation")
@@ -413,4 +424,4 @@ async def generate_translation(request_body: Generate, user_id: str = Depends(au
 
     ai.generate_translation.generate_translation(request_body.id)
 
-    return {'message': 'Success!'}
+    return JSONResponse(content={'message': 'Success!'})
