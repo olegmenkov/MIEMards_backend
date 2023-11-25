@@ -58,7 +58,7 @@ async def login(request_body: LoginModel):
     user_id, user_data = found_user
 
     # Создаем токен
-    access_token = authentification.create_access_token(data={"sub": str(found_user)})
+    access_token = authentification.create_access_token(data={"sub": str(user_id)})
 
     # Возвращаем токен в ответе
     return JSONResponse(content={"access_token": access_token, "token_type": "bearer",
@@ -119,6 +119,8 @@ async def get_deck(request_body: GetDeckById, user_id: str = Depends(authentific
     Возвращает информацию о колоде по её ID в следующем формате:
     {"creator": "userId", "name": "deckName", "description": "deckDescription"}
     """
+    if not user_id:
+        raise HTTPException(status_code=404, detail="User not found")
 
     deck_info = db_functions.get_deck_by_id(request_body.id, user_id)
     return JSONResponse(content=deck_info)
@@ -199,6 +201,8 @@ async def get_deck(request_body: GetCardById, user_id: str = Depends(authentific
     {"english_word": "englishWord", "translation": "translation", "explanation": "explanation",
                             "deck_id": "deckId"}
     """
+    if not user_id:
+        raise HTTPException(status_code=404, detail="User not found")
 
     deck_info = db_functions.get_card_by_id(request_body.card_id, request_body.deck, user_id)
     return JSONResponse(content=deck_info)
@@ -233,7 +237,6 @@ async def delete_card(request_body: DeleteCardModel, user_id: str = Depends(auth
     return JSONResponse(content={"message": "Card deleted successfully"})
 
 
-# Эндпоинт для возвращения карт в колоде
 @app.get("/cards/show_decks_cards")
 async def get_cards(request_body: GetDecksCards, user_id: str = Depends(authentification.get_current_user)):
     """
