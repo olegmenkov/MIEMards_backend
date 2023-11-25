@@ -64,7 +64,6 @@ async def login(request_body: LoginModel):
     return JSONResponse(content={"access_token": access_token, "token_type": "bearer",
                                  "user_id": user_id,
                                  "username": user_data["username"],
-                                 "password": user_data["password"],
                                  "email": user_data["email"],
                                  "phone": user_data["phone"],
                                  "country": user_data["country"]})
