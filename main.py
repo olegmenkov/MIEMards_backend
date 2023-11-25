@@ -40,9 +40,9 @@ async def register(request_body: RegisterModel):
     Регистрирует в БД нового пользователя со всеми полями, указанными при регистрации
     """
 
-    db_functions.add_user_to_db(request_body.username, request_body.password, request_body.email,
+    user_id = db_functions.add_user_to_db(request_body.username, request_body.password, request_body.email,
                                 request_body.phone, request_body.country)
-    return {"message": "User registered successfully"}
+    return {"user_id": user_id}
 
 
 @app.post("/login")
