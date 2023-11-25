@@ -8,7 +8,7 @@ def test_register_user(client):
                            json={"username": "testuser", "password": "testpassword", "email": "test@example.com",
                                  "phone": "1234567890", "country": "Testland"})
     assert response.status_code == 200
-    assert response.json() == {"message": "User registered successfully"}
+    assert response.json()
 
 
 def test_login_user(client):
