@@ -22,7 +22,7 @@ def find_user_by_login_data(email: str, password: str):
                  users_table[user_id]["email"] == email and users_table[user_id]["password"] == password), None)
 
 
-def get_username_by_id(user_id):
+def get_userdata_by_id(user_id):
     return users_table[user_id]["username"]
 
 
@@ -135,6 +135,91 @@ def get_decks_cards(user_id: str, deck_id: str):
             cards[card_id] = cards_table[card_id]
 
     return cards
+
+
+def add_interest(user_id, text):
+    interest_id = 20
+    return interest_id
+
+
+def edit_interest(user_id, interest_id):
+    pass
+
+
+def delete_interest(user_id, interest_id):
+    pass
+
+
+def get_interest(user_id, interest_id):
+    return {"name": "music"}
+
+
+def get_interests(user_id):
+    return ["music", "sport", "reading"]
+
+
+def add_post(user_id, text):
+    post_id = 20
+    return post_id
+
+
+def edit_post(user_id, post_id):
+    pass
+
+
+def delete_post(user_id, post_id):
+    pass
+
+
+def get_post(user_id, post_id):
+    return "It's more efficient to learn languages by cards!"
+
+
+def get_posts(user_id):
+    return ["It's more efficient to learn languages by cards!", "It is beneficial to talk to native speakers"]
+
+
+def add_group(user_id, name, members):
+    group_id = 20
+    return group_id
+
+
+def edit_group(user_id, group_id, field, value):
+    pass
+
+
+def delete_group(user_id, group_id):
+    pass
+
+
+def get_group(user_id, group_id):
+    return {'name': 'BIV201', 'members': ['Daria, Kirill, Alexander, Oleg']}
+
+
+def get_groups(user_id):
+    return ["BIV201", "BIV202", "BIV203"]
+
+
+def add_bank_card(user_id, number, exp_date, cvv):
+    bank_card_id = 20
+    return bank_card_id
+
+
+def edit_bank_card(user_id, bank_card_id, field, value):
+    pass
+
+
+def delete_bank_card(user_id, bank_card_id):
+    pass
+
+
+def get_bank_card(user_id, bank_card_id):
+    number = '1234567890123456'
+    return {'type': 'MIR', 'number': number[-4:]}
+
+
+def get_bank_cards(user_id):
+    return [{'type': 'MIR', 'number': '3144'}, {'type': 'Visa', 'number': '7302'}]
 
 
 def update_achievements(user_id, words_learned, decks_learned_fully, decks_learned_partly):
