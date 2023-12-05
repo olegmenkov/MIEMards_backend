@@ -50,9 +50,6 @@ async def register(request_body: UserInfo):
     Регистрирует в БД нового пользователя со всеми полями, указанными при регистрации
     """
 
-    print(request_body.model_fields)
-    # raise HTTPException(status_code=422, detail="Need username, password, email, phone, country")
-
     db_functions.add_user_to_db(request_body.username, request_body.password, request_body.email,
                                 request_body.phone, request_body.country)
     return JSONResponse(content={"message": "User registered successfully"})
