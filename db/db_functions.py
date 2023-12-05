@@ -23,7 +23,7 @@ def find_user_by_login_data(email: str, password: str):
 
 
 def get_userdata_by_id(user_id):
-    return users_table[user_id]["username"]
+    return users_table[user_id]
 
 
 def edit_users_profile(user_id, field_to_change: str, new_value: str):
