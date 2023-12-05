@@ -42,7 +42,7 @@ def delete_user_from_db(user_id):
 
     cards_to_delete = []
     for card_id in cards_table:
-        if cards_table[card_id]["deck"] in decks_to_delete:
+        if cards_table[card_id]["deck_id"] in decks_to_delete:
             cards_to_delete.append(card_id)
     for card_id in cards_to_delete:
         cards_table.pop(card_id)
@@ -60,6 +60,9 @@ def get_deck_by_id(deck_id: str, user_id: str):
 
 
 def check_deck_for_user(user_id: str, deck_id: str):
+    if deck_id not in decks_table:
+        raise HTTPException(status_code=404,
+                            detail='This deck is not found')
     if decks_table[deck_id]["creator"] == user_id:
         return
     else:
@@ -78,7 +81,7 @@ def delete_deck_from_db(user_id, deck_id):
 
     cards_to_delete = []
     for card_id in cards_table:
-        if cards_table[card_id]["deck"] == deck_id:
+        if cards_table[card_id]["deck_id"] == deck_id:
             cards_to_delete.append(card_id)
     for card_id in cards_to_delete:
         cards_table.pop(card_id)
@@ -108,7 +111,10 @@ def get_card_by_id(card_id: str, deck_id: str, user_id: str):
 
 
 def check_card_for_deck(deck_id: str, card_id: str):
-    if cards_table[card_id]["creator"] == deck_id:
+    if card_id not in cards_table:
+        raise HTTPException(status_code=404,
+                            detail='This card is not found')
+    if cards_table[card_id]["deck_id"] == deck_id:
         return
     else:
         raise HTTPException(status_code=404,
@@ -124,14 +130,14 @@ def edit_card_in_db(user_id, deck_id, card_id, field_to_change, new_value):
 def delete_card_from_db(user_id, deck_id, card_id):
     check_deck_for_user(user_id, deck_id)
     check_card_for_deck(deck_id, card_id)
-    cards_table.pop(deck_id)
+    cards_table.pop(card_id)
 
 
 def get_decks_cards(user_id: str, deck_id: str):
     check_deck_for_user(user_id, deck_id)
     cards = {}
     for card_id in cards_table:
-        if cards_table[card_id]["deck"] == deck_id:
+        if cards_table[card_id]["deck_id"] == deck_id:
             cards[card_id] = cards_table[card_id]
 
     return cards
