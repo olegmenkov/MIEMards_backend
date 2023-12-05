@@ -98,6 +98,11 @@ class BankCardData(BaseModel):
     cvv: str
 
 
+class SocialMediaAccount(BaseModel):
+    type: str
+    link: str
+
+
 class GameResults(BaseModel):
     words_learned: int
     decks_learned_fully: int

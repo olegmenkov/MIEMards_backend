@@ -40,6 +40,7 @@ router_interests = APIRouter()
 router_posts = APIRouter()
 router_groups = APIRouter()
 router_bank_cards = APIRouter()
+router_accounts = APIRouter()
 router_statistics = APIRouter()
 router_rankings = APIRouter()
 
@@ -606,7 +607,8 @@ async def get_bank_card(bank_card_id: str, user_id: str = Depends(authentificati
 
 
 @router_bank_cards.patch("/{bank_card_id}")
-async def edit_post(request_body: BankCardData, bank_card_id: str, user_id: str = Depends(authentification.get_current_user)):
+async def edit_bank_card(request_body: BankCardData, bank_card_id: str,
+                         user_id: str = Depends(authentification.get_current_user)):
     """
     Меняет карту
     """
@@ -650,6 +652,93 @@ async def get_bank_cards(user_id: str = Depends(authentification.get_current_use
     users_bank_cards = db_functions.get_bank_cards(user_id)
 
     return JSONResponse(content=users_bank_cards)
+
+
+@router_accounts.post("")
+async def create_account(request_body: SocialMediaAccount, user_id: str = Depends(authentification.get_current_user)):
+    """
+    Привязывает новый аккаунт в соцсетях
+    """
+
+    if not user_id:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    SOCIAL_MEDIA_TYPES = {
+        "VK",
+        "INSTAGRAM",
+        "FACEBOOK",
+        "TELEGRAM",
+        "YOUTUBE",
+        "X",
+        "WECHAT"
+    }
+
+    # Вызываем функцию для добавления аккаунта в базу данных
+    if request_body.type in SOCIAL_MEDIA_TYPES:
+        account_id = db_functions.add_account(user_id, request_body.type, request_body.link)
+        return JSONResponse(content={"account_id": account_id})
+    else:
+        raise HTTPException(status_code=422, detail="Unsupported social media type")
+
+
+@router_accounts.get("/get_account_by_id/")
+async def get_account(account_id: str, user_id: str = Depends(authentification.get_current_user)):
+    """
+    Возвращает аккаунт по айди
+    """
+
+    if not user_id:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    account_info = db_functions.get_bank_card(user_id, account_id)
+    return JSONResponse(content=account_info)
+
+
+@router_accounts.patch("/{account_id}")
+async def edit_account(request_body: SocialMediaAccount, account_id: str, user_id: str = Depends(authentification.get_current_user)):
+    """
+    Меняет аккаунт
+    """
+
+    if not user_id:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    for field, value in request_body.model_dump(exclude_unset=True).items():
+        # Проверка существования поля в модели
+        if field not in BankCardData.__annotations__:
+            raise HTTPException(status_code=422, detail=f"Invalid field: {field}")
+
+        if value is not None:
+            db_functions.edit_account(user_id, account_id, field, value)
+    return JSONResponse(content={"message": "account edited successfully"})
+
+
+@router_accounts.delete("/{account_id}")
+async def delete_account(account_id: str, user_id: str = Depends(authentification.get_current_user)):
+    """
+    Удаляет аккаунт
+    """
+
+    if not user_id:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    db_functions.delete_bank_card(user_id, account_id)
+
+    return JSONResponse(content={"message": "account deleted successfully"})
+
+
+@router_accounts.get("/show_accounts_of_user")
+async def get_accounts(user_id: str = Depends(authentification.get_current_user)):
+    """
+    Возвращает все аккаунты данного пользователя
+    """
+
+    if not user_id:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    users_accounts = db_functions.get_accounts(user_id)
+
+    return JSONResponse(content=users_accounts)
 
 
 @router_statistics.post("")
@@ -779,6 +868,7 @@ app.include_router(router_cards, prefix="/cards", tags=["Cards"])
 app.include_router(router_interests, prefix="/interests", tags=["Interests"])
 app.include_router(router_posts, prefix="/posts", tags=["Posts"])
 app.include_router(router_groups, prefix="/groups", tags=["Groups"])
-app.include_router(router_posts, prefix="/bank_cards", tags=["Bank cards"])
+app.include_router(router_bank_cards, prefix="/bank_cards", tags=["Bank cards"])
+app.include_router(router_accounts, prefix="/social_accounts", tags=["Social media accounts"])
 app.include_router(router_statistics, prefix="/statistics", tags=["Statistics"])
 app.include_router(router_rankings, prefix="/rankings", tags=["Rankings"])

@@ -222,6 +222,27 @@ def get_bank_cards(user_id):
     return [{'type': 'MIR', 'number': '3144'}, {'type': 'Visa', 'number': '7302'}]
 
 
+def add_account(user_id, type, link):
+    account_id = 20
+    return account_id
+
+
+def edit_account(user_id, account_id, field, value):
+    pass
+
+
+def delete_account(user_id, account_id):
+    pass
+
+
+def get_account(user_id, account_id):
+    return {'type': 'Telegram', 'link': 't.me/someusername'}
+
+
+def get_accounts(user_id):
+    return [{'type': 'Telegram', 'link': 't.me/someusername'}, {'type': 'VK', 'link': 'vk.com/someuserprofile'}]
+
+
 def update_achievements(user_id, words_learned, decks_learned_fully, decks_learned_partly):
     today = datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)
 
