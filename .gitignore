@@ -133,3 +133,5 @@ dmypy.json
 /.idea/
 .idea/workspace.xml
 .idea
+
+db/__pycache__/
