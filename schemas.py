@@ -10,6 +10,14 @@ class UserInfo(BaseModel):
     country: Optional[str] = None
 
 
+class EditProfileModel(BaseModel):
+    username: str
+    password: Optional[str] = None
+    email: EmailStr
+    phone: Optional[str] = None
+    country: Optional[str] = None
+
+
 class LoginModel(BaseModel):
     email: EmailStr
     password: str
