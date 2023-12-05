@@ -320,8 +320,11 @@ def get_top_all(metric):
 
 
 def get_top_all_for_day():
-    metric = lambda x: x[datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)]["words_learned"]
-    return get_top_all(metric)
+    try:
+        metric = lambda x: x[datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)]["words_learned"]
+        return get_top_all(metric)
+    except:
+        return []
 
 
 def get_top_all_for_week():
