@@ -265,8 +265,11 @@ def get_results_for_period(user_id, period_start, period_end):
 
 
 def get_results_for_today(user_id):
-    today = datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)
-    return get_results_for_period(user_id, today, today + timedelta(days=1))
+    try:
+        today = datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)
+        return get_results_for_period(user_id, today, today + timedelta(days=1))
+    except:
+        return 0, 0, 0, 0
 
 
 def get_weekly_results(user_id):
