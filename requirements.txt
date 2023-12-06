@@ -9,3 +9,4 @@ pytest
 mypy
 python-dotenv==1.0.0
 httpx
+alembic

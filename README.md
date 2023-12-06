@@ -45,3 +45,13 @@ make test
 ```shell
 make lint
 ```
+
+# Поднять базу данных
+1. Поднимаете в докере базу данных
+```shell
+docker-compose up -d
+```
+2. ревизия
+```alembic revision --autogenerate -m "Added new tables"```
+3. обновление
+```alembic upgrade head```

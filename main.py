@@ -10,11 +10,18 @@ from ai.generate_deck_recommendation import generate_deck_recommendation
 
 import db.db_functions as db_functions
 import authentification
+from db.db_class import Database
 from schemas import *
 
 
-# TODO: протестить
-
+# вынести в конфиг где остальное говно хранишь
+HOST = 'localhost'
+PORT = 5433
+DATABASE = 'miemards'
+USERNAME = 'postgres'
+PASSWORD = 'postgres'
+##################
+db = Database(HOST, PORT, DATABASE, USERNAME, PASSWORD)
 app = FastAPI()
 
 origins = [
