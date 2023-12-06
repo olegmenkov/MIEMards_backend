@@ -19,10 +19,10 @@ decks_table = {
 
 cards_table = {
     "0": {
-        "deck": "0", "english_word": "peace", "translation": "мир", "explanation": "отсутствие войны"
+        "deck_id": "0", "english_word": "peace", "translation": "мир", "explanation": "отсутствие войны"
     },
     "1": {
-        "deck": "0", "english_word": "world", "translation": "мир",
+        "deck_id": "0", "english_word": "world", "translation": "мир",
         "explanation": "часть вселенной, планета"
     }
 }

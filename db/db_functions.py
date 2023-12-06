@@ -22,8 +22,8 @@ def find_user_by_login_data(email: str, password: str):
                  users_table[user_id]["email"] == email and users_table[user_id]["password"] == password), None)
 
 
-def get_username_by_id(user_id):
-    return users_table[user_id]["username"]
+def get_userdata_by_id(user_id):
+    return users_table[user_id]
 
 
 def edit_users_profile(user_id, field_to_change: str, new_value: str):
@@ -42,7 +42,7 @@ def delete_user_from_db(user_id):
 
     cards_to_delete = []
     for card_id in cards_table:
-        if cards_table[card_id]["deck"] in decks_to_delete:
+        if cards_table[card_id]["deck_id"] in decks_to_delete:
             cards_to_delete.append(card_id)
     for card_id in cards_to_delete:
         cards_table.pop(card_id)
@@ -60,6 +60,9 @@ def get_deck_by_id(deck_id: str, user_id: str):
 
 
 def check_deck_for_user(user_id: str, deck_id: str):
+    if deck_id not in decks_table:
+        raise HTTPException(status_code=404,
+                            detail='This deck is not found')
     if decks_table[deck_id]["creator"] == user_id:
         return
     else:
@@ -78,7 +81,7 @@ def delete_deck_from_db(user_id, deck_id):
 
     cards_to_delete = []
     for card_id in cards_table:
-        if cards_table[card_id]["deck"] == deck_id:
+        if cards_table[card_id]["deck_id"] == deck_id:
             cards_to_delete.append(card_id)
     for card_id in cards_to_delete:
         cards_table.pop(card_id)
@@ -108,7 +111,10 @@ def get_card_by_id(card_id: str, deck_id: str, user_id: str):
 
 
 def check_card_for_deck(deck_id: str, card_id: str):
-    if cards_table[card_id]["creator"] == deck_id:
+    if card_id not in cards_table:
+        raise HTTPException(status_code=404,
+                            detail='This card is not found')
+    if cards_table[card_id]["deck_id"] == deck_id:
         return
     else:
         raise HTTPException(status_code=404,
@@ -124,17 +130,123 @@ def edit_card_in_db(user_id, deck_id, card_id, field_to_change, new_value):
 def delete_card_from_db(user_id, deck_id, card_id):
     check_deck_for_user(user_id, deck_id)
     check_card_for_deck(deck_id, card_id)
-    cards_table.pop(deck_id)
+    cards_table.pop(card_id)
 
 
 def get_decks_cards(user_id: str, deck_id: str):
     check_deck_for_user(user_id, deck_id)
     cards = {}
     for card_id in cards_table:
-        if cards_table[card_id]["deck"] == deck_id:
+        if cards_table[card_id]["deck_id"] == deck_id:
             cards[card_id] = cards_table[card_id]
 
     return cards
+
+
+def add_interest(user_id, text):
+    interest_id = 20
+    return interest_id
+
+
+def edit_interest(user_id, interest_id):
+    pass
+
+
+def delete_interest(user_id, interest_id):
+    pass
+
+
+def get_interest(user_id, interest_id):
+    return {"name": "music"}
+
+
+def get_interests(user_id):
+    return ["music", "sport", "reading"]
+
+
+def add_post(user_id, text):
+    post_id = 20
+    return post_id
+
+
+def edit_post(user_id, post_id):
+    pass
+
+
+def delete_post(user_id, post_id):
+    pass
+
+
+def get_post(user_id, post_id):
+    return "It's more efficient to learn languages by cards!"
+
+
+def get_posts(user_id):
+    return ["It's more efficient to learn languages by cards!", "It is beneficial to talk to native speakers"]
+
+
+def add_group(user_id, name, members):
+    group_id = 20
+    return group_id
+
+
+def edit_group(user_id, group_id, field, value):
+    pass
+
+
+def delete_group(user_id, group_id):
+    pass
+
+
+def get_group(user_id, group_id):
+    return {'name': 'BIV201', 'members': ['Daria, Kirill, Alexander, Oleg']}
+
+
+def get_groups(user_id):
+    return ["BIV201", "BIV202", "BIV203"]
+
+
+def add_bank_card(user_id, number, exp_date, cvv):
+    bank_card_id = 20
+    return bank_card_id
+
+
+def edit_bank_card(user_id, bank_card_id, field, value):
+    pass
+
+
+def delete_bank_card(user_id, bank_card_id):
+    pass
+
+
+def get_bank_card(user_id, bank_card_id):
+    number = '1234567890123456'
+    return {'type': 'MIR', 'number': number[-4:]}
+
+
+def get_bank_cards(user_id):
+    return [{'type': 'MIR', 'number': '3144'}, {'type': 'Visa', 'number': '7302'}]
+
+
+def add_account(user_id, type, link):
+    account_id = 20
+    return account_id
+
+
+def edit_account(user_id, account_id, field, value):
+    pass
+
+
+def delete_account(user_id, account_id):
+    pass
+
+
+def get_account(user_id, account_id):
+    return {'type': 'Telegram', 'link': 't.me/someusername'}
+
+
+def get_accounts(user_id):
+    return [{'type': 'Telegram', 'link': 't.me/someusername'}, {'type': 'VK', 'link': 'vk.com/someuserprofile'}]
 
 
 def update_achievements(user_id, words_learned, decks_learned_fully, decks_learned_partly):
@@ -180,8 +292,11 @@ def get_results_for_period(user_id, period_start, period_end):
 
 
 def get_results_for_today(user_id):
-    today = datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)
-    return get_results_for_period(user_id, today, today + timedelta(days=1))
+    try:
+        today = datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)
+        return get_results_for_period(user_id, today, today + timedelta(days=1))
+    except:
+        return 0, 0, 0, 0
 
 
 def get_weekly_results(user_id):
@@ -211,8 +326,11 @@ def get_top_all(metric):
 
 
 def get_top_all_for_day():
-    metric = lambda x: x[datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)]["words_learned"]
-    return get_top_all(metric)
+    try:
+        metric = lambda x: x[datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)]["words_learned"]
+        return get_top_all(metric)
+    except:
+        return []
 
 
 def get_top_all_for_week():

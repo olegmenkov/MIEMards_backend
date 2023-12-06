@@ -1,12 +1,21 @@
 from pydantic import BaseModel, EmailStr
+from typing import Optional
 
 
-class RegisterModel(BaseModel):
+class UserInfo(BaseModel):
     username: str
     password: str
     email: EmailStr
-    phone: str
-    country: str
+    phone: Optional[str] = None
+    country: Optional[str] = None
+
+
+class EditProfileModel(BaseModel):
+    username: str
+    password: Optional[str] = None
+    email: EmailStr
+    phone: Optional[str] = None
+    country: Optional[str] = None
 
 
 class LoginModel(BaseModel):
@@ -47,7 +56,7 @@ class CardData(BaseModel):
 
 class GetCardById(BaseModel):
     card_id: str
-    deck: str
+    deck_id: str
 
 
 class EditCardModel(BaseModel):
@@ -64,6 +73,34 @@ class DeleteCardModel(BaseModel):
 
 class GetDecksCards(BaseModel):
     deck_id: str
+
+
+class InterestData(BaseModel):
+    name: str
+
+
+class ID(BaseModel):
+    id: str
+
+
+class PostData(BaseModel):
+    text: str
+
+
+class GroupData(BaseModel):
+    name: str
+    users: str
+
+
+class BankCardData(BaseModel):
+    number: str
+    exp_date: str
+    cvv: str
+
+
+class SocialMediaAccount(BaseModel):
+    type: str
+    link: str
 
 
 class GameResults(BaseModel):
