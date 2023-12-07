@@ -21,7 +21,7 @@ DATABASE = 'miemards'
 USERNAME = 'postgres'
 PASSWORD = 'postgres'
 ##################
-db = Database(HOST, PORT, DATABASE, USERNAME, PASSWORD)
+db = Database(HOST, PORT, USERNAME, PASSWORD, DATABASE)
 app = FastAPI()
 
 origins = [
@@ -57,8 +57,7 @@ async def register(request_body: UserInfo):
     """
     Регистрирует в БД нового пользователя со всеми полями, указанными при регистрации
     """
-
-    db_functions.add_user_to_db(request_body.username, request_body.password, request_body.email,
+    await db_functions.add_user_to_db(db, request_body.username, request_body.password, request_body.email,
                                 request_body.phone, request_body.country)
     return JSONResponse(content={"message": "User registered successfully"})
 

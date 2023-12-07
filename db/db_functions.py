@@ -1,20 +1,37 @@
+import uuid
+
 from pydantic import EmailStr
 from fastapi import HTTPException
 from datetime import datetime, timedelta
+
+from sqlalchemy import text
+
 from db.database import *
 
 
-def add_user_to_db(username: str, password: str, email: EmailStr, phone: str, country: str):
-    for user_id in users_table:
-        if users_table[user_id]["email"] == email or users_table[user_id]["phone"] == phone:
-            raise HTTPException(status_code=409, detail="Email or phone number already in use")
+async def add_user_to_db(db, username: str, password: str, email: EmailStr, phone: str, country: str):
+    query = text("""
+            INSERT INTO users (u_id, u_username, u_password, u_email, u_phone, u_country) 
+            VALUES (:u_id, :u_username, :u_password, :u_email, :u_phone, :u_country)
+            """)
+    await db.execute(query,
+                     {'u_id': uuid.uuid4(),
+                      'u_username': username,
+                      'u_password': password,
+                      'u_email': email,
+                      'u_phone': phone,
+                      'u_country': country})
 
-    user_id = str(len(users_table))
-    users_table[user_id] = {"username": username,
-                            "password": password,
-                            "email": email,
-                            "phone": phone,
-                            "country": country}
+    # for user_id in users_table:
+    #     if users_table[user_id]["email"] == email or users_table[user_id]["phone"] == phone:
+    #         raise HTTPException(status_code=409, detail="Email or phone number already in use")
+    #
+    # user_id = str(len(users_table))
+    # users_table[user_id] = {"username": username,
+    #                         "password": password,
+    #                         "email": email,
+    #                         "phone": phone,
+    #                         "country": country}
 
 
 def find_user_by_login_data(email: str, password: str):
