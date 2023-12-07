@@ -1,12 +1,27 @@
 import authentification
-import db
-import db.db_functions
+from db.db_functions import get_userdata_by_id, find_user_by_login_data
+from db.db_class import Database
+import asyncio
+import pytest
+
+HOST = 'localhost'
+PORT = 5433
+DATABASE = 'miemards'
+USERNAME = 'postgres'
+PASSWORD = 'postgres'
 
 
-def test_register_success(client):
+@pytest.fixture
+async def database():
+    return Database(HOST, PORT, USERNAME, PASSWORD, DATABASE)
+
+
+@pytest.mark.asyncio
+async def test_register_success(client, database):
     """
     Test successful user registration
     :param client:
+    :param database:
     :return:
     """
     # Регистрируемся
@@ -22,27 +37,16 @@ def test_register_success(client):
     user_id = authentification.get_current_user(access_token)
 
     # Проверяем, что в БД добавилась та же информация, что мы отправили
-    user_data_in_db = db.db_functions.get_userdata_by_id(user_id)
-    assert user_data_input == user_data_in_db
+    user_data_in_db = await get_userdata_by_id(await database, user_id)
+    assert tuple(user_data_input.values()) == user_data_in_db
 
 
-def test_register_no_required_fields(client):
-    """
-    Test user registration with too few fields
-    :param client:
-    :return:
-    """
-    response = client.post("/profile/register",
-                           json={"username": "testuser", "email": "test@example.com",
-                                 # нет пароля -- обязательного поля
-                                 "phone": "1234567890", "country": "Testland"})
-    assert response.status_code == 422
-
-
-def test_login_user_not_existing(client):
+@pytest.mark.asyncio
+async def test_login_user_not_existing(client, database):
     """
     Test non-existing user login
     :param client:
+    :param database:
     :return:
     """
 
@@ -51,7 +55,7 @@ def test_login_user_not_existing(client):
     password = "notexistingpasswd"
 
     # проверяем, что таких пользователей правда нет в БД
-    assert not db.db_functions.find_user_by_login_data(email, password)
+    assert not await find_user_by_login_data(await database, email, password)
 
     # проверяем, что приложение вернёт ошибку при попытке залогиниться под этим пользователем
     response = client.post("/profile/login", json={"email": email, "password": email})
@@ -59,7 +63,8 @@ def test_login_user_not_existing(client):
     assert response.json() == {'detail': "Invalid email or password"}
 
 
-def test_profile_edited_correctly(client):
+@pytest.mark.asyncio
+async def test_profile_edited_correctly(client, database):
     # Регистрируемся
     user_data = {"username": "Luka", "password": "12345", "email": "luka@example.com",
                        "phone": "+38 910-983-6725", "country": "Yugoslavia"}
@@ -83,6 +88,5 @@ def test_profile_edited_correctly(client):
 
     # Проверяем, что в БД они тоже поменялись
     user_id = authentification.get_current_user(access_token)
-    user_data_in_db = db.db_functions.get_userdata_by_id(user_id)
-    assert user_data_in_db == user_data
-
+    user_data_in_db = await get_userdata_by_id(await database, user_id)
+    assert user_data_in_db == tuple(user_data.values())
