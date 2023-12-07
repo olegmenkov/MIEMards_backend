@@ -68,11 +68,15 @@ async def login(request_body: LoginModel):
     Проверяет, существует ли пользователь с таким логином и паролем. Если да, возвращает токен для дальнейшего доступа
     """
 
-    found_user = db_functions.find_user_by_login_data(request_body.email, request_body.password)
+    found_user = await db_functions.find_user_by_login_data(db, request_body.email, request_body.password)
     if not found_user:
         raise HTTPException(status_code=401, detail="Invalid email or password")
 
-    user_id, user_data = found_user
+    user_id = str(found_user.u_id)
+    user_data = {"username": found_user.u_username,
+                 "email": found_user.u_email,
+                 "phone": found_user.u_phone,
+                 "country": found_user.u_country}
 
     # Создаем токен
     access_token = authentification.create_access_token(data={"sub": str(user_id)})
@@ -101,7 +105,7 @@ async def edit_profile(request_body: UserInfo, user_id: str = Depends(authentifi
             raise HTTPException(status_code=422, detail=f"Invalid field: {field}")
 
         if value is not None:
-            db_functions.edit_users_profile(user_id, field, value)
+            await db_functions.edit_users_profile(db, user_id, field, value)
 
     return JSONResponse(content={"message": "Profile edited successfully"})
 
@@ -111,8 +115,11 @@ async def get_user_data(user_id: str = Depends(authentification.get_current_user
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
-    user_data = db_functions.get_userdata_by_id(user_id)
-    user_data.pop("password")
+    user_data = await db_functions.get_userdata_by_id(db, user_id)
+    user_data = {"username": user_data.u_username,
+                 "email": user_data.u_email,
+                 "phone": user_data.u_phone,
+                 "country": user_data.u_country}
 
     return JSONResponse(content=user_data)
 
@@ -126,7 +133,7 @@ async def delete_profile(user_id: str = Depends(authentification.get_current_use
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
-    db_functions.delete_user_from_db(user_id)
+    await db_functions.delete_user_from_db(db, user_id)
 
     return JSONResponse(content={"message": "Profile deleted successfully"})
 
@@ -825,8 +832,8 @@ async def rankings_today(user_id: str = Depends(authentification.get_current_use
     content = []  # упорядоченный список
     top_all_today = db_functions.get_top_all_for_day()
     for user_id, words_learned in top_all_today:
-        username = db_functions.get_userdata_by_id(user_id)["username"]
-        content.append({"username": username, "words learned": words_learned})
+        user = await db_functions.get_userdata_by_id(db, user_id)
+        content.append({"username": user.u_username, "words learned": words_learned})
 
     return JSONResponse(content=content)
 
@@ -843,8 +850,8 @@ async def rankings_week(user_id: str = Depends(authentification.get_current_user
     content = []  # упорядоченный список
     top_all_week = db_functions.get_top_all_for_week()
     for user_id, words_learned in top_all_week:
-        username = db_functions.get_userdata_by_id(user_id)["username"]
-        content.append({"username": username, "words learned": words_learned})
+        user = await db_functions.get_userdata_by_id(db, user_id)
+        content.append({"username": user.u_username, "words learned": words_learned})
 
     return JSONResponse(content=content)
 
@@ -861,8 +868,8 @@ async def rankings_week(user_id: str = Depends(authentification.get_current_user
     content = []  # упорядоченный список
     top_all_total = db_functions.get_top_all_for_total()
     for user_id, words_learned in top_all_total:
-        username = db_functions.get_userdata_by_id(user_id)["username"]
-        content.append({"username": username, "words learned": words_learned})
+        user = await db_functions.get_userdata_by_id(db, user_id)
+        content.append({"username": user.u_username, "words learned": words_learned})
 
     return JSONResponse(content=content)
 

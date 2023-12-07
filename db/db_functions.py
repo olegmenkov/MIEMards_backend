@@ -22,47 +22,46 @@ async def add_user_to_db(db, username: str, password: str, email: EmailStr, phon
                       'u_phone': phone,
                       'u_country': country})
 
-    # for user_id in users_table:
-    #     if users_table[user_id]["email"] == email or users_table[user_id]["phone"] == phone:
-    #         raise HTTPException(status_code=409, detail="Email or phone number already in use")
+
+async def find_user_by_login_data(db, email: str, password: str):
+    query = text("""SELECT * FROM users where u_email = :email and u_password = :password""")
+    result = await db.execute(query,
+                              {'email': email,
+                               'password': password})
+    res = result.fetchone() if result else None
+    return res
+
+
+async def get_userdata_by_id(db, user_id):
+    query = text("""SELECT * FROM users where u_id = :user_id""")
+    result = await db.execute(query,
+                              {'user_id': user_id})
+    res = result.fetchone() if result else None
+    return res
+
+
+async def edit_users_profile(db, user_id, field_to_change: str, new_value: str):
+    query = text("""UPDATE users SET :field_to_change = :new_value WHERE u_id = :user_id""")
+    await db.execute(query, {'user_id': user_id, 'field_to_change': field_to_change, 'new_value': new_value})
+
+
+async def delete_user_from_db(db, user_id):
+    query = text("""DELETE FROM users WHERE u_id = :user_id""")
+    await db.execute(query, {'user_id': user_id})
+
+    # decks_to_delete = []
+    # for deck_id in decks_table:
+    #     if decks_table[deck_id]["creator"] == user_id:
+    #         decks_to_delete.append(deck_id)
+    # for deck_id in decks_to_delete:
+    #     decks_table.pop(deck_id)
     #
-    # user_id = str(len(users_table))
-    # users_table[user_id] = {"username": username,
-    #                         "password": password,
-    #                         "email": email,
-    #                         "phone": phone,
-    #                         "country": country}
-
-
-def find_user_by_login_data(email: str, password: str):
-    return next(([user_id, users_table[user_id]] for user_id in users_table if
-                 users_table[user_id]["email"] == email and users_table[user_id]["password"] == password), None)
-
-
-def get_userdata_by_id(user_id):
-    return users_table[user_id]
-
-
-def edit_users_profile(user_id, field_to_change: str, new_value: str):
-    users_table[user_id][field_to_change] = new_value
-
-
-def delete_user_from_db(user_id):
-    users_table.pop(user_id)
-
-    decks_to_delete = []
-    for deck_id in decks_table:
-        if decks_table[deck_id]["creator"] == user_id:
-            decks_to_delete.append(deck_id)
-    for deck_id in decks_to_delete:
-        decks_table.pop(deck_id)
-
-    cards_to_delete = []
-    for card_id in cards_table:
-        if cards_table[card_id]["deck_id"] in decks_to_delete:
-            cards_to_delete.append(card_id)
-    for card_id in cards_to_delete:
-        cards_table.pop(card_id)
+    # cards_to_delete = []
+    # for card_id in cards_table:
+    #     if cards_table[card_id]["deck_id"] in decks_to_delete:
+    #         cards_to_delete.append(card_id)
+    # for card_id in cards_to_delete:
+    #     cards_table.pop(card_id)
 
 
 def add_deck(name: str, creator: str, description: str):
