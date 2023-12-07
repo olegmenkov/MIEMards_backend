@@ -55,6 +55,10 @@ make lint
 ```shell
 docker-compose up -d
 ```
+или
+```shell
+docker compose up -d
+```
 2. ревизия
 ```alembic revision --autogenerate -m "Added new tables"```
 3. обновление
