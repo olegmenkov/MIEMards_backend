@@ -161,7 +161,7 @@ async def create_deck(deck_data: DeckData, user_id: str = Depends(authentificati
     return JSONResponse(content={"deck_id": deck_id})
 
 
-@router_decks.get("/get_deck_by_id/")
+@router_decks.get("/get_deck_by_id")
 async def get_deck(deck_id: str, user_id: str = Depends(authentification.get_current_user)):
     """
     Возвращает информацию о колоде по её ID в следующем формате:
@@ -308,7 +308,7 @@ async def delete_card(deck_id: str, card_id: str, user_id: str = Depends(authent
     return JSONResponse(content={"message": "Card deleted successfully"})
 
 
-@router_cards.get("/show_cards_from_deck/")
+@router_cards.get("/show_cards_from_deck")
 async def get_cards(deck_id: str, user_id: str = Depends(authentification.get_current_user)):
     """
     Возвращает все карты в заданной колоде в формате
@@ -331,7 +331,7 @@ async def get_cards(deck_id: str, user_id: str = Depends(authentification.get_cu
     return JSONResponse(content=cards)
 
 
-@router_cards.get("/generate_image/{card_id}")
+@router_cards.get("/generate_image")
 async def generate_image(card_id: str, user_id: str = Depends(authentification.get_current_user)):
     """
     Генерирует изображение для данной карточки
@@ -345,7 +345,7 @@ async def generate_image(card_id: str, user_id: str = Depends(authentification.g
     return JSONResponse(content={'message': 'Success!'})
 
 
-@router_cards.get("/generate_translation/{card_id}")
+@router_cards.get("/generate_translation")
 async def generate_translation(card_id: str, user_id: str = Depends(authentification.get_current_user)):
     """
     Генерирует перевод для данной карточки
@@ -374,7 +374,7 @@ async def create_interest(request_body: InterestData, user_id: str = Depends(aut
     return JSONResponse(content={"interest_id": interest_id})
 
 
-@router_interests.get("/get_interest_by_id/")
+@router_interests.get("/get_interest_by_id")
 async def get_interest(interest_id: str, user_id: str = Depends(authentification.get_current_user)):
     """
     Возвращает интерес по айди
@@ -387,7 +387,7 @@ async def get_interest(interest_id: str, user_id: str = Depends(authentification
     return JSONResponse(content=interest_info)
 
 
-@router_interests.patch("/{interest_id}")
+@router_interests.patch("")
 async def edit_interest(request_body: InterestData, interest_id: str, user_id: str = Depends(authentification.get_current_user)):
     """
     Меняет интерес
@@ -407,7 +407,7 @@ async def edit_interest(request_body: InterestData, interest_id: str, user_id: s
 
 
 # Эндпоинт для удаления колоды
-@router_interests.delete("/{interest_id}")
+@router_interests.delete("")
 async def delete_interest(interest_id: str, user_id: str = Depends(authentification.get_current_user)):
     """
     Удаляет интерес
@@ -450,7 +450,7 @@ async def create_post(request_body: PostData, user_id: str = Depends(authentific
     return JSONResponse(content={"post_id": post_id})
 
 
-@router_posts.get("/get_post_by_id/{post_id}")
+@router_posts.get("/get_post_by_id")
 async def get_post(post_id: str, user_id: str = Depends(authentification.get_current_user)):
     """
     Возвращает пост по айди
@@ -463,7 +463,7 @@ async def get_post(post_id: str, user_id: str = Depends(authentification.get_cur
     return JSONResponse(content=post_info)
 
 
-@router_posts.patch("/{post_id}")
+@router_posts.patch("")
 async def edit_post(request_body: PostData, post_id: str, user_id: str = Depends(authentification.get_current_user)):
     """
     Меняет пост
@@ -482,8 +482,7 @@ async def edit_post(request_body: PostData, post_id: str, user_id: str = Depends
     return JSONResponse(content={"message": "Post edited successfully"})
 
 
-# Эндпоинт для удаления колоды
-@router_posts.delete("/{post_id}")
+@router_posts.delete("")
 async def delete_post(post_id: str, user_id: str = Depends(authentification.get_current_user)):
     """
     Удаляет пост
@@ -526,7 +525,7 @@ async def create_group(request_body: GroupData, user_id: str = Depends(authentif
     return JSONResponse(content={"group_id": group_id})
 
 
-@router_groups.get("/get_group_by_id/{group_id}")
+@router_groups.get("/get_group_by_id")
 async def get_group(group_id: str, user_id: str = Depends(authentification.get_current_user)):
     """
     Возвращает группу по айди
@@ -539,7 +538,7 @@ async def get_group(group_id: str, user_id: str = Depends(authentification.get_c
     return JSONResponse(content=group_info)
 
 
-@router_groups.patch("/{group_id}")
+@router_groups.patch("")
 async def edit_post(request_body: GroupData, group_id: str, user_id: str = Depends(authentification.get_current_user)):
     """
     Меняет группу
@@ -558,7 +557,7 @@ async def edit_post(request_body: GroupData, group_id: str, user_id: str = Depen
     return JSONResponse(content={"message": "group edited successfully"})
 
 
-@router_groups.delete("/{group_id}")
+@router_groups.delete("")
 async def delete_group(group_id: str, user_id: str = Depends(authentification.get_current_user)):
     """
     Удаляет группу
@@ -600,7 +599,7 @@ async def create_bank_card(request_body: BankCardData, user_id: str = Depends(au
     return JSONResponse(content={"bank_card_id": bank_card_id})
 
 
-@router_bank_cards.get("/get_bank_card_by_id/{bank_card_id}")
+@router_bank_cards.get("/get_bank_card_by_id")
 async def get_bank_card(bank_card_id: str, user_id: str = Depends(authentification.get_current_user)):
     """
     Возвращает карту по айди
@@ -613,7 +612,7 @@ async def get_bank_card(bank_card_id: str, user_id: str = Depends(authentificati
     return JSONResponse(content=bank_card_info)
 
 
-@router_bank_cards.patch("/{bank_card_id}")
+@router_bank_cards.patch("")
 async def edit_bank_card(request_body: BankCardData, bank_card_id: str,
                          user_id: str = Depends(authentification.get_current_user)):
     """
@@ -633,7 +632,7 @@ async def edit_bank_card(request_body: BankCardData, bank_card_id: str,
     return JSONResponse(content={"message": "group edited successfully"})
 
 
-@router_bank_cards.delete("/{bank_card_id}")
+@router_bank_cards.delete("")
 async def delete_bank_card(bank_card_id: str, user_id: str = Depends(authentification.get_current_user)):
     """
     Удаляет карту
@@ -688,7 +687,7 @@ async def create_account(request_body: SocialMediaAccount, user_id: str = Depend
         raise HTTPException(status_code=422, detail="Unsupported social media type")
 
 
-@router_accounts.get("/get_account_by_id/{account_id}")
+@router_accounts.get("/get_account_by_id")
 async def get_account(account_id: str, user_id: str = Depends(authentification.get_current_user)):
     """
     Возвращает аккаунт по айди
@@ -701,7 +700,7 @@ async def get_account(account_id: str, user_id: str = Depends(authentification.g
     return JSONResponse(content=account_info)
 
 
-@router_accounts.patch("/{account_id}")
+@router_accounts.patch("")
 async def edit_account(request_body: SocialMediaAccount, account_id: str, user_id: str = Depends(authentification.get_current_user)):
     """
     Меняет аккаунт
@@ -720,7 +719,7 @@ async def edit_account(request_body: SocialMediaAccount, account_id: str, user_i
     return JSONResponse(content={"message": "account edited successfully"})
 
 
-@router_accounts.delete("/{account_id}")
+@router_accounts.delete("")
 async def delete_account(account_id: str, user_id: str = Depends(authentification.get_current_user)):
     """
     Удаляет аккаунт

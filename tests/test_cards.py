@@ -52,7 +52,7 @@ def test_edit_card(client):
     assert card_data_from_db == new_card_data
 
 
-def test_get_card(client):
+def test_delete_card(client):
     #  логинимся
     access_token = client.post("/profile/login", json={"email": "user@example.com", "password": "string"}).json()[
         'access_token']
