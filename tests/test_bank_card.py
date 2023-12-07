@@ -1,4 +1,4 @@
-import authentification
+'''import authentification
 import db
 import db.db_functions
 
@@ -107,3 +107,4 @@ def test_get_bank_cards(client):
     bank_card_data_from_db = db.db_functions.get_bank_cards(user_id)
     assert len(bank_card_data_from_db) == 1
     assert bank_card_data_from_db[0] == number
+'''

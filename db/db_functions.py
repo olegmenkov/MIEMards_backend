@@ -33,11 +33,16 @@ async def find_user_by_login_data(db, email: str, password: str):
 
 
 async def get_userdata_by_id(db, user_id):
-    query = text("""SELECT u_username, u_password, u_email, u_phone, u_country FROM users where u_id = :user_id""")
+    query = text("""SELECT u_username, u_email, u_phone, u_country FROM users where u_id = :user_id""")
     result = await db.execute(query,
                               {'user_id': user_id})
-    res = result.fetchone() if result else None
-    return res
+    res = result.fetchone()
+    if res:
+        username, email, phone, country = res
+        return {'username': username, 'email': email, 'phone': phone, 'country': country}
+    else:
+        raise HTTPException(status_code=404,
+                            detail='This deck is not found')
 
 
 async def edit_users_profile(db, user_id, field_to_change: str, new_value: str):
@@ -49,121 +54,164 @@ async def delete_user_from_db(db, user_id):
     query = text("""DELETE FROM users WHERE u_id = :user_id""")
     await db.execute(query, {'user_id': user_id})
 
+    query = text("""SELECT d_id FROM decks where d_creator = :user_id""")
+    result = await db.execute(query, {'user_id': user_id})
 
-def add_deck(name: str, creator: str, description: str):
-    deck_id = str(len(decks_table))
-    decks_table[deck_id] = {"name": name, "creator": creator, "description": description}
-    return deck_id
-
-
-def get_deck_by_id(deck_id: str, user_id: str):
-    check_deck_for_user(user_id, deck_id)
-    return decks_table[deck_id]
+    res = result.fetchone()
+    if res:
+        for deck_id in res:
+            await delete_deck_from_db(db, deck_id)
 
 
-def check_deck_for_user(user_id: str, deck_id: str):
-    if deck_id not in decks_table:
+async def add_deck(db, name: str, creator: str, description: str):
+    deck_id = uuid.uuid4()
+    query = text("""
+                INSERT INTO decks (d_id, d_name, d_creator, d_description) 
+                VALUES (:id, :name, :creator, :description)
+                """)
+    await db.execute(query,
+                     {'id': deck_id,
+                      'name': name,
+                      'creator': creator,
+                      'description': description})
+    return str(deck_id)
+
+
+async def get_deck_by_id(db, deck_id: str):
+    query = text("""SELECT d_name, d_description FROM decks where d_id = :deck_id""")
+    result = await db.execute(query,
+                              {'deck_id': deck_id})
+    res = result.fetchone()
+    if res:
+        name, description = res
+        return {"name": name, "description": description}
+    else:
         raise HTTPException(status_code=404,
                             detail='This deck is not found')
-    if decks_table[deck_id]["creator"] == user_id:
-        return
+
+
+async def edit_deck_in_db(db, deck_id, field_to_change, new_value):
+    query = text("""UPDATE decks SET """ + 'd_' + field_to_change + """= :new_value WHERE d_id = :deck_id""")
+    await db.execute(query, {'new_value': new_value, 'deck_id': deck_id})
+
+
+async def delete_deck_from_db(db, deck_id):
+    query = text("""DELETE FROM decks WHERE d_id = :deck_id""")
+    await db.execute(query, {'deck_id': deck_id})
+
+    query = text("""SELECT c_id FROM cards where c_deck_id= :deck_id""")
+    result = await db.execute(query, {'deck_id': deck_id})
+
+    res = result.fetchone()
+    if res:
+        for deck_id in res:
+            await delete_deck_from_db(db, deck_id)
+
+
+async def get_users_decks(db, user_id: str):
+    query = text("""SELECT d_id, d_creator, d_name, d_description FROM decks WHERE d_creator = :user_id;""")
+    result = await db.execute(query, {'user_id': user_id})
+    decks = {}
+
+    for row in result:
+        deck_id, creator, name, description = row
+        decks[deck_id] = {"creator": creator, "name": name, "description": description}
+
+    return decks
+
+
+async def add_card(db, english_word: str, translation: str, explanation: str, deck_id: str):
+    card_id = uuid.uuid4()
+    query = text("""
+                    INSERT INTO cards (c_id, c_english_word, c_translation, c_explanation, c_deck_id) 
+                    VALUES (:id, :english_word, :translation, :explanation, :deck_id)
+                    """)
+    await db.execute(query,
+                     {'id': card_id,
+                      'english_word': english_word,
+                      'translation': translation,
+                      'explanation': explanation,
+                      'deck_id': deck_id})
+    return str(card_id)
+
+
+async def get_card_by_id(db, card_id: str):
+    query = text("""SELECT c_english_word, c_translation, c_explanation FROM cards where c_id = :card_id""")
+    result = await db.execute(query, {'card_id': card_id})
+    res = result.fetchone()
+    if res:
+        english_word, translation, explanation = res
+        return {"english_word": english_word, "translation": translation, "explanation": explanation}
     else:
-        raise HTTPException(status_code=404,
-                            detail='This deck does not belong to this user')
-
-
-def edit_deck_in_db(user_id, deck_id, field_to_change, new_value):
-    check_deck_for_user(user_id, deck_id)
-    decks_table[deck_id][field_to_change] = new_value
-
-
-def delete_deck_from_db(user_id, deck_id):
-    check_deck_for_user(user_id, deck_id)
-    decks_table.pop(deck_id)
-
-    cards_to_delete = []
-    for card_id in cards_table:
-        if cards_table[card_id]["deck_id"] == deck_id:
-            cards_to_delete.append(card_id)
-    for card_id in cards_to_delete:
-        cards_table.pop(card_id)
-
-
-def get_users_decks(user_id: str):
-    users_decks = {}
-    for deck_id in decks_table:
-        if decks_table[deck_id]["creator"] == user_id:
-            users_decks[deck_id] = decks_table[deck_id]
-
-    return users_decks
-
-
-def add_card(english_word: str, translation: str, explanation: str, deck_id: str, user_id: str):
-    check_deck_for_user(user_id, deck_id)
-    card_id = str(len(cards_table))
-    cards_table[card_id] = {"english_word": english_word, "translation": translation, "explanation": explanation,
-                            "deck_id": deck_id}
-    return card_id
-
-
-def get_card_by_id(card_id: str, deck_id: str, user_id: str):
-    check_deck_for_user(user_id, deck_id)
-    check_card_for_deck(deck_id, card_id)
-    return cards_table[card_id]
-
-
-def check_card_for_deck(deck_id: str, card_id: str):
-    if card_id not in cards_table:
         raise HTTPException(status_code=404,
                             detail='This card is not found')
-    if cards_table[card_id]["deck_id"] == deck_id:
-        return
-    else:
-        raise HTTPException(status_code=404,
-                            detail='This deck does not contain such card')
 
 
-def edit_card_in_db(user_id, deck_id, card_id, field_to_change, new_value):
-    check_deck_for_user(user_id, deck_id)
-    check_card_for_deck(deck_id, card_id)
-    cards_table[card_id][field_to_change] = new_value
+async def edit_card_in_db(db, card_id, field_to_change, new_value):
+    query = text(
+        """UPDATE cards SET """ + 'c_' + field_to_change + """= :new_value WHERE c_id = :card_id""")
+    await db.execute(query, {'new_value': new_value, 'card_id': card_id})
 
 
-def delete_card_from_db(user_id, deck_id, card_id):
-    check_deck_for_user(user_id, deck_id)
-    check_card_for_deck(deck_id, card_id)
-    cards_table.pop(card_id)
+async def delete_card_from_db(db, card_id):
+    query = text("""DELETE FROM cards WHERE c_id = :card_id""")
+    await db.execute(query, {'card_id': card_id})
 
 
-def get_decks_cards(user_id: str, deck_id: str):
-    check_deck_for_user(user_id, deck_id)
+async def get_decks_cards(db, deck_id: str):
+    query = text("""SELECT c_id, c_english_word, c_translation, c_explanation FROM cards WHERE c_deck_id = :deck_id;""")
+    result = await db.execute(query, {'deck_id': deck_id})
     cards = {}
-    for card_id in cards_table:
-        if cards_table[card_id]["deck_id"] == deck_id:
-            cards[card_id] = cards_table[card_id]
+
+    for row in result:
+        card_id, english_word, translation, explanation = row
+        cards[card_id] = {"deck_id": deck_id, "english_word": english_word, "translation": translation, "explanation": explanation}
 
     return cards
 
 
-def add_interest(user_id, text):
-    interest_id = 20
-    return interest_id
+async def add_interest(db, user_id, name):
+    interest_id = uuid.uuid4()
+    query = text("""INSERT INTO interests (i_id, i_name, i_user_id) VALUES (:id, :name, :user_id)""")
+    await db.execute(query,
+                     {'id': interest_id,
+                      'name': name,
+                      'user_id': user_id})
+    return str(interest_id)
 
 
-def edit_interest(user_id, interest_id):
-    pass
+async def edit_interest(db, interest_id, field_to_change, new_value):
+    query = text("""UPDATE interests SET """ + 'i_' + field_to_change + """= :new_value WHERE i_id = :interest_id""")
+    await db.execute(query, {'new_value': new_value, 'interest_id': interest_id})
 
 
-def delete_interest(user_id, interest_id):
-    pass
+async def delete_interest(db, interest_id):
+    query = text("""DELETE FROM interests WHERE i_id = :interest_id""")
+    await db.execute(query, {'interest_id': interest_id})
 
 
-def get_interest(user_id, interest_id):
-    return {"name": "music"}
+async def get_interest(db, interest_id):
+    query = text("""SELECT i_name FROM interests where i_id = :interest_id""")
+    result = await db.execute(query, {'interest_id': interest_id})
+    res = result.fetchone()
+    if res:
+        name = res[0]
+        return {"name": name}
+    else:
+        raise HTTPException(status_code=404,
+                            detail='This interest is not found')
 
 
-def get_interests(user_id):
-    return ["music", "sport", "reading"]
+async def get_interests(db, user_id):
+    query = text("""SELECT c_interest_id, c_name FROM interests WHERE c_user_id = :user_id;""")
+    result = await db.execute(query, {'user_id': user_id})
+    interests = {}
+
+    for row in result:
+        interest_id, name = row
+        interests[interest_id] = {"name": name}
+
+    return interests
 
 
 def add_post(user_id, text):

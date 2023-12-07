@@ -49,6 +49,7 @@ class Interests(Base):
 
     i_id = Column(UUID(as_uuid=True), primary_key=True)
     i_name = Column(String(128))
+    i_user_id = Column(UUID(as_uuid=True))
 
 
 class Posts(Base):

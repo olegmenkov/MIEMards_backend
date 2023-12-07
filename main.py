@@ -162,7 +162,7 @@ async def create_deck(deck_data: DeckData, user_id: str = Depends(authentificati
         raise HTTPException(status_code=404, detail="User not found")
 
     # Вызываем функцию для добавления колоды в базу данных
-    deck_id = db_functions.add_deck(deck_data.name, user_id, deck_data.description)
+    deck_id = await db_functions.add_deck(db, deck_data.name, user_id, deck_data.description)
 
     return JSONResponse(content={"deck_id": deck_id})
 
@@ -176,7 +176,7 @@ async def get_deck(deck_id: str, user_id: str = Depends(authentification.get_cur
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
-    deck_info = db_functions.get_deck_by_id(deck_id, user_id)
+    deck_info = await db_functions.get_deck_by_id(db, deck_id)
     return JSONResponse(content=deck_info)
 
 
@@ -195,7 +195,7 @@ async def edit_deck(request_body: DeckData, deck_id: str, user_id: str = Depends
             raise HTTPException(status_code=422, detail=f"Invalid field: {field}")
 
         if value is not None:
-            db_functions.edit_deck_in_db(user_id, deck_id, field, value)
+            await db_functions.edit_deck_in_db(db, deck_id, field, value)
 
     return JSONResponse(content={"message": "Deck edited successfully"})
 
@@ -210,7 +210,7 @@ async def delete_deck(deck_id: str, user_id: str = Depends(authentification.get_
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
-    db_functions.delete_deck_from_db(user_id, deck_id)
+    await db_functions.delete_deck_from_db(db, deck_id)
     
     return JSONResponse(content={"message": "Deck deleted successfully"})
 
@@ -233,9 +233,9 @@ async def get_decks(user_id: str = Depends(authentification.get_current_user)):
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
-    users_decks = db_functions.get_users_decks(user_id)
+    users_decks = await db_functions.get_users_decks(db, user_id)
 
-    return JSONResponse(content=users_decks)
+    return JSONResponse(content=list(users_decks))
 
 
 @router_decks.get("/generate_card")
@@ -262,13 +262,13 @@ async def create_card(card_data: CardData, user_id: str = Depends(authentificati
         raise HTTPException(status_code=404, detail="User not found")
 
     # Вызываем функцию для добавления карты в базу данных
-    card_id = db_functions.add_card(card_data.english_word, card_data.translation, card_data.explanation,
-                                    card_data.deck_id, user_id)
+    card_id = await db_functions.add_card(db, card_data.english_word, card_data.translation, card_data.explanation,
+                                    card_data.deck_id)
     return JSONResponse(content={"card_id": card_id})
 
 
 @router_cards.get("/get_card_by_id")
-async def get_card(deck_id: str, card_id: str, user_id: str = Depends(authentification.get_current_user)):
+async def get_card(card_id: str, user_id: str = Depends(authentification.get_current_user)):
     """
     Возвращает информацию по карточке по её ID в следующем формате
     {"english_word": "englishWord", "translation": "translation", "explanation": "explanation",
@@ -277,7 +277,7 @@ async def get_card(deck_id: str, card_id: str, user_id: str = Depends(authentifi
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
-    deck_info = db_functions.get_card_by_id(card_id, deck_id, user_id)
+    deck_info = await db_functions.get_card_by_id(db, card_id)
     return JSONResponse(content=deck_info)
 
 
@@ -296,13 +296,13 @@ async def edit_card(card_id: str, request_body: CardData, user_id: str = Depends
             raise HTTPException(status_code=422, detail=f"Invalid field: {field}")
 
         if value is not None:
-            db_functions.edit_card_in_db(user_id, request_body.deck_id, card_id, field, value)
+            await db_functions.edit_card_in_db(db, card_id, field, value)
 
     return JSONResponse(content={"message": "Card edited successfully"})
 
 
 @router_cards.delete("")
-async def delete_card(deck_id: str, card_id: str, user_id: str = Depends(authentification.get_current_user)):
+async def delete_card(card_id: str, user_id: str = Depends(authentification.get_current_user)):
     """
     Удаляет карточку из колоды пользователя
     """
@@ -310,7 +310,7 @@ async def delete_card(deck_id: str, card_id: str, user_id: str = Depends(authent
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
-    db_functions.delete_card_from_db(user_id, deck_id, card_id)
+    await db_functions.delete_card_from_db(db, card_id)
     return JSONResponse(content={"message": "Card deleted successfully"})
 
 
@@ -332,7 +332,7 @@ async def get_cards(deck_id: str, user_id: str = Depends(authentification.get_cu
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
-    cards = db_functions.get_decks_cards(user_id, deck_id)
+    cards = await db_functions.get_decks_cards(db, deck_id)
 
     return JSONResponse(content=cards)
 
@@ -375,7 +375,7 @@ async def create_interest(request_body: InterestData, user_id: str = Depends(aut
         raise HTTPException(status_code=404, detail="User not found")
 
     # Вызываем функцию для добавления колоды в базу данных
-    interest_id = db_functions.add_interest(user_id, request_body.name)
+    interest_id = await db_functions.add_interest(db, user_id, request_body.name)
 
     return JSONResponse(content={"interest_id": interest_id})
 
@@ -389,7 +389,7 @@ async def get_interest(interest_id: str, user_id: str = Depends(authentification
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
-    interest_info = db_functions.get_interest(user_id, interest_id)
+    interest_info = await db_functions.get_interest(db, interest_id)
     return JSONResponse(content=interest_info)
 
 
@@ -408,11 +408,11 @@ async def edit_interest(request_body: InterestData, interest_id: str, user_id: s
             raise HTTPException(status_code=422, detail=f"Invalid field: {field}")
 
         if value is not None:
-            db_functions.edit_interest(user_id, interest_id)
+            await db_functions.edit_interest(db, interest_id, field, value)
     return JSONResponse(content={"message": "Interest edited successfully"})
 
 
-# Эндпоинт для удаления колоды
+# Эндпоинт для удаления интереса
 @router_interests.delete("")
 async def delete_interest(interest_id: str, user_id: str = Depends(authentification.get_current_user)):
     """

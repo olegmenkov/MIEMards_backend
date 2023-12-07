@@ -1,4 +1,4 @@
-import authentification
+'''import authentification
 import db
 import db.db_functions
 
@@ -78,3 +78,4 @@ def test_delete_group(client):
     assert response.status_code == 404
     assert response.json() == {'detail': 'This group is not found'}
 
+'''

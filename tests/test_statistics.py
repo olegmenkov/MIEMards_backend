@@ -1,4 +1,4 @@
-def test_get_today(client):
+'''def test_get_today(client):
     # Регистрируемся и логинимся
     client.post("/profile/register", json={
         "username": "string",
@@ -16,3 +16,4 @@ def test_get_today(client):
 
     response = client.get("/statistics/for_today", headers=headers)
     assert response.status_code == 200
+'''

@@ -6,8 +6,8 @@ class UserInfo(BaseModel):
     username: str
     password: str
     email: EmailStr
-    phone: Optional[str] = None
-    country: Optional[str] = None
+    phone: str
+    country: str
 
 
 class EditProfileModel(BaseModel):

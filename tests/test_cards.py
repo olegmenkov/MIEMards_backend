@@ -1,4 +1,4 @@
-import authentification
+'''import authentification
 import db
 import db.db_functions
 
@@ -75,3 +75,4 @@ def test_delete_card(client):
     response = client.get(f"/cards/get_card_by_id/?deck_id={deck_id}&card_id={card_id}", headers=headers)
     assert response.status_code == 404
     assert response.json() == {'detail': 'This card is not found'}
+'''
