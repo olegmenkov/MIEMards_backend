@@ -10,3 +10,5 @@ mypy
 python-dotenv==1.0.0
 httpx
 alembic
+asyncpg==0.29.0
+psycopg2

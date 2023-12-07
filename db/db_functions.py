@@ -238,11 +238,11 @@ def delete_bank_card(user_id, bank_card_id):
 
 def get_bank_card(user_id, bank_card_id):
     number = '1234567890123456'
-    return {'type': 'MIR', 'number': number[-4:]}
+    return number[-4:]
 
 
 def get_bank_cards(user_id):
-    return [{'type': 'MIR', 'number': '3144'}, {'type': 'Visa', 'number': '7302'}]
+    return ['3144', '7302']
 
 
 def add_account(user_id, type, link):
