@@ -33,7 +33,7 @@ async def find_user_by_login_data(db, email: str, password: str):
 
 
 async def get_userdata_by_id(db, user_id):
-    query = text("""SELECT * FROM users where u_id = :user_id""")
+    query = text("""SELECT u_username, u_password, u_email, u_phone, u_country FROM users where u_id = :user_id""")
     result = await db.execute(query,
                               {'user_id': user_id})
     res = result.fetchone() if result else None
@@ -41,27 +41,13 @@ async def get_userdata_by_id(db, user_id):
 
 
 async def edit_users_profile(db, user_id, field_to_change: str, new_value: str):
-    query = text("""UPDATE users SET :field_to_change = :new_value WHERE u_id = :user_id""")
-    await db.execute(query, {'user_id': user_id, 'field_to_change': field_to_change, 'new_value': new_value})
+    query = text("""UPDATE users SET """ + 'u_' + field_to_change + """= :new_value WHERE u_id = :user_id""")
+    await db.execute(query, {'new_value': new_value, 'user_id': user_id})
 
 
 async def delete_user_from_db(db, user_id):
     query = text("""DELETE FROM users WHERE u_id = :user_id""")
     await db.execute(query, {'user_id': user_id})
-
-    # decks_to_delete = []
-    # for deck_id in decks_table:
-    #     if decks_table[deck_id]["creator"] == user_id:
-    #         decks_to_delete.append(deck_id)
-    # for deck_id in decks_to_delete:
-    #     decks_table.pop(deck_id)
-    #
-    # cards_to_delete = []
-    # for card_id in cards_table:
-    #     if cards_table[card_id]["deck_id"] in decks_to_delete:
-    #         cards_to_delete.append(card_id)
-    # for card_id in cards_to_delete:
-    #     cards_table.pop(card_id)
 
 
 def add_deck(name: str, creator: str, description: str):
