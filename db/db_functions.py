@@ -333,25 +333,51 @@ def get_bank_cards(user_id):
     return ['3144', '7302']
 
 
-def add_account(user_id, type, link):
-    account_id = 20
-    return account_id
+async def add_account(db, user_id, type_, link):
+    acc_id = uuid.uuid4()
+    query = text("""INSERT INTO socialmediaaccounts VALUES (:id, :user_id, :type, :link)""")
+    await db.execute(query,
+                     {'id': acc_id,
+                      'user_id': user_id,
+                      'type': type_,
+                      'link': link})
+    return str(acc_id)
 
 
-def edit_account(user_id, account_id, field, value):
-    pass
+async def edit_account(db, account_id, field, value):
+    table_column = {"type": "SMA_type", "link": "SMA_link"}
+    query = text("""UPDATE socialmediaaccounts SET """ + table_column[field] + """= :new_value WHERE sma_id = :account_id""")
+    await db.execute(query, {'new_value': value, 'account_id': account_id})
 
 
-def delete_account(user_id, account_id):
-    pass
+async def delete_account(db, account_id):
+    query = text("""DELETE FROM socialmediaaccounts WHERE sma_id = :account_id""")
+    await db.execute(query, {'account_id': account_id})
 
 
-def get_account(user_id, account_id):
-    return {'type': 'Telegram', 'link': 't.me/someusername'}
+async def get_account(db, account_id):
+    query = text("""SELECT * FROM socialmediaaccounts where sma_id = :account_id""")
+    result = await db.execute(query, {'account_id': account_id})
+    res = result.fetchone()
+    if res:
+        id_, user_id, type_, link = res
+        return {'type': type_,
+                'link': link}
+    else:
+        raise HTTPException(status_code=404,
+                            detail='This account is not found')
 
 
-def get_accounts(user_id):
-    return [{'type': 'Telegram', 'link': 't.me/someusername'}, {'type': 'VK', 'link': 'vk.com/someuserprofile'}]
+async def get_accounts(db, user_id):
+    query = text("""SELECT * FROM socialmediaaccounts WHERE sma_user_id = :user_id;""")
+    result = await db.execute(query, {'user_id': user_id})
+    accounts = {}
+
+    for row in result:
+        acc_id, user_id, type_, link = row
+        accounts[str(acc_id)] = {'type': type_,
+                                 'link': link}
+    return accounts
 
 
 def update_achievements(user_id, words_learned, decks_learned_fully, decks_learned_partly):

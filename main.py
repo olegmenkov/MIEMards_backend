@@ -545,7 +545,7 @@ async def get_group(group_id: str, user_id: str = Depends(authentification.get_c
 
 
 @router_groups.patch("")
-async def edit_post(request_body: GroupData, group_id: str, user_id: str = Depends(authentification.get_current_user)):
+async def edit_group(request_body: GroupData, group_id: str, user_id: str = Depends(authentification.get_current_user)):
     """
     Меняет группу
     """
@@ -687,7 +687,7 @@ async def create_account(request_body: SocialMediaAccount, user_id: str = Depend
 
     # Вызываем функцию для добавления аккаунта в базу данных
     if request_body.type in SOCIAL_MEDIA_TYPES:
-        account_id = db_functions.add_account(user_id, request_body.type, request_body.link)
+        account_id = await db_functions.add_account(db, user_id, request_body.type, request_body.link)
         return JSONResponse(content={"account_id": account_id})
     else:
         raise HTTPException(status_code=422, detail="Unsupported social media type")
@@ -702,12 +702,12 @@ async def get_account(account_id: str, user_id: str = Depends(authentification.g
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
-    account_info = db_functions.get_bank_card(user_id, account_id)
+    account_info = await db_functions.get_account(db, account_id)
     return JSONResponse(content=account_info)
 
 
 @router_accounts.patch("")
-async def edit_account(request_body: SocialMediaAccount, account_id: str, user_id: str = Depends(authentification.get_current_user)):
+async def edit_account(account_id: str, request_body: SocialMediaAccount, user_id: str = Depends(authentification.get_current_user)):
     """
     Меняет аккаунт
     """
@@ -717,11 +717,11 @@ async def edit_account(request_body: SocialMediaAccount, account_id: str, user_i
 
     for field, value in request_body.model_dump(exclude_unset=True).items():
         # Проверка существования поля в модели
-        if field not in BankCardData.__annotations__:
+        if field not in SocialMediaAccount.__annotations__:
             raise HTTPException(status_code=422, detail=f"Invalid field: {field}")
 
         if value is not None:
-            db_functions.edit_account(user_id, account_id, field, value)
+            await db_functions.edit_account(db, account_id, field, value)
     return JSONResponse(content={"message": "account edited successfully"})
 
 
@@ -734,7 +734,7 @@ async def delete_account(account_id: str, user_id: str = Depends(authentificatio
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
-    db_functions.delete_bank_card(user_id, account_id)
+    await db_functions.delete_account(db, account_id)
 
     return JSONResponse(content={"message": "account deleted successfully"})
 
@@ -748,7 +748,7 @@ async def get_accounts(user_id: str = Depends(authentification.get_current_user)
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
-    users_accounts = db_functions.get_accounts(user_id)
+    users_accounts = await db_functions.get_accounts(db, user_id)
 
     return JSONResponse(content=users_accounts)
 

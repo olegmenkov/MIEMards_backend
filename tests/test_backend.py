@@ -515,3 +515,88 @@ def test_delete_group( client):
     response = client.get(f"/groups/get_group_by_id/?group_id={group_id}", headers=headers)
     assert response.status_code == 404
     assert response.json() == {'detail': 'This group is not found'}
+
+
+@pytest.mark.asyncio
+async def test_add_acc(database, client):
+    # Регистрируемся
+    user_data_input = {"username": "Petya", "password": "12345", "email": "petya@example.com",
+                       "phone": "89109836725", "country": "Russia"}
+    client.post("/profile/register", json=user_data_input)
+
+    # Логинимся под этим новым пользователем, получаем токен, из которого будем брать ID
+    access_token = client.post("/profile/login", json={"email": "petya@example.com", "password": "12345"}).json()[
+        'access_token']
+    headers = {
+        'Authorization': f'Bearer {access_token}',
+        'Content-Type': 'application/json',
+    }
+
+    # Добавим новый аккаунт
+    acc_data_input = {"type": "VK", "link": "vk.com/id37364638"}
+    response = client.post('/social_accounts', json=acc_data_input, headers=headers)
+    assert response.status_code == 200
+    account_id = response.json()['account_id']
+    assert account_id
+
+    # Проверим, что он правильно добавился
+    account_data_from_db = await db.db_functions.get_account(await database, account_id)
+    assert account_data_from_db == acc_data_input
+
+
+def test_delete_acc(client):
+    # Регистрируемся
+    user_data_input = {"username": "Petya", "password": "12345", "email": "petya@example.com",
+                       "phone": "89109836725", "country": "Russia"}
+    response = client.post("/profile/register", json=user_data_input)
+
+    # Логинимся под этим новым пользователем, получаем токен, из которого будем брать ID
+    access_token = client.post("/profile/login", json={"email": "petya@example.com", "password": "12345"}).json()[
+        'access_token']
+    user_id = authentification.get_current_user(access_token)
+    headers = {
+        'Authorization': f'Bearer {access_token}',
+        'Content-Type': 'application/json',
+    }
+
+    # Добавим новый аккаунт
+    acc_data_input = {"type": "VK", "link": "vk.com/id37364638"}
+    account_id = client.post('/social_accounts', json=acc_data_input, headers=headers).json()['account_id']
+
+    # Удалим аккаунт
+    response = client.delete(f'/social_accounts/?account_id={account_id}', headers=headers)
+    assert response.status_code == 200
+
+    # Проверим, что он правда удалился
+    response = client.get(f"/social_accounts/get_account_by_id/?account_id={account_id}", headers=headers)
+    assert response.status_code == 404
+    assert response.json() == {'detail': 'This account is not found'}
+
+
+def test_get_accs(client):
+    # Регистрируемся
+    user_data_input = {"username": "Petya", "password": "12345", "email": "petya@example.com",
+                       "phone": "89109836725", "country": "Russia"}
+    client.post("/profile/register", json=user_data_input)
+
+    # Логинимся под этим новым пользователем, получаем токен, из которого будем брать ID
+    access_token = client.post("/profile/login", json={"email": "petya@example.com", "password": "12345"}).json()[
+        'access_token']
+    headers = {
+        'Authorization': f'Bearer {access_token}',
+        'Content-Type': 'application/json',
+    }
+    user_id = authentification.get_current_user(access_token)
+
+    # Добавим новый аккаунт
+    acc_data1 = {"type": "VK", "link": "vk.com/user111"}
+    account_id1 = client.post('/social_accounts', json=acc_data1, headers=headers).json()['account_id']
+    acc_data2 = {"type": "TELEGRAM", "link": "t.me/user222"}
+    account_id2 = client.post('/social_accounts', json=acc_data2, headers=headers).json()['account_id']
+
+    response = client.get("/social_accounts/show_accounts_of_user", headers=headers)
+    assert response.status_code == 200
+    accounts_data_from_response = response.json()
+    assert accounts_data_from_response[account_id1] == acc_data1
+    assert accounts_data_from_response[account_id2] == acc_data2
+
