@@ -64,14 +64,16 @@ class Groups(Base):
     g_id = Column(UUID(as_uuid=True), primary_key=True)
     g_name = Column(String(128))
     g_admin_id = Column(UUID(as_uuid=True))
-    g_members = Column(ARRAY(String))
+    g_users = Column(ARRAY(String))
 
 
 class BankCards(Base):
     __tablename__ = 'bankcards'
-    bc_user_id = Column(UUID(as_uuid=True), primary_key=True)
+
+    bc_id = Column(UUID(as_uuid=True), primary_key=True)
+    # bc_user_id = Column(UUID(as_uuid=True))
     bc_number = Column(String(128))
-    bc_exp_date = DateTime()
+    bc_exp_date = Column(DateTime())
     bc_cvv = Column(String(4))
 
 

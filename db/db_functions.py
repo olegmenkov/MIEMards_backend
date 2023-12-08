@@ -111,11 +111,11 @@ async def delete_deck_from_db(db, deck_id):
 async def get_users_decks(db, user_id: str):
     query = text("""SELECT d_id, d_creator, d_name, d_description FROM decks WHERE d_creator = :user_id;""")
     result = await db.execute(query, {'user_id': user_id})
-    decks = {}
+    decks = dict()
 
     for row in result:
         deck_id, creator, name, description = row
-        decks[deck_id] = {"creator": creator, "name": name, "description": description}
+        decks[str(deck_id)] = {"creator": str(creator), "name": name, "description": description}
 
     return decks
 
@@ -203,7 +203,7 @@ async def get_interest(db, interest_id):
 
 
 async def get_interests(db, user_id):
-    query = text("""SELECT c_interest_id, c_name FROM interests WHERE c_user_id = :user_id;""")
+    query = text("""SELECT i_id, i_name FROM interests WHERE i_user_id = :user_id;""")
     result = await db.execute(query, {'user_id': user_id})
     interests = {}
 
@@ -214,51 +214,106 @@ async def get_interests(db, user_id):
     return interests
 
 
-def add_post(user_id, text):
-    post_id = 20
-    return post_id
+async def add_post(db, user_id, text_):
+    post_id = uuid.uuid4()
+    query = text("""INSERT INTO posts (p_id, p_author_id, p_text) VALUES (:id, :author, :text)""")
+    await db.execute(query,
+                     {'id': post_id,
+                      'author': user_id,
+                      'text': text_})
+    return str(post_id)
 
 
-def edit_post(user_id, post_id):
-    pass
+async def edit_post(db, post_id, field_to_change, new_value):
+    query = text("""UPDATE posts SET """ + 'p_' + field_to_change + """= :new_value WHERE p_id = :post_id""")
+    await db.execute(query, {'new_value': new_value, 'post_id': post_id})
 
 
-def delete_post(user_id, post_id):
-    pass
+async def delete_post(db, post_id):
+    query = text("""DELETE FROM posts WHERE p_id = :post_id""")
+    await db.execute(query, {'post_id': post_id})
 
 
-def get_post(user_id, post_id):
-    return "It's more efficient to learn languages by cards!"
+async def get_post(db, post_id):
+    query = text("""SELECT p_text FROM posts where p_id = :post_id""")
+    result = await db.execute(query, {'post_id': post_id})
+    res = result.fetchone()
+    if res:
+        text_ = res[0]
+        return {"text": text_}
+    else:
+        raise HTTPException(status_code=404,
+                            detail='This post is not found')
 
 
-def get_posts(user_id):
-    return ["It's more efficient to learn languages by cards!", "It is beneficial to talk to native speakers"]
+async def get_posts(db, user_id):
+    query = text("""SELECT p_id, p_text FROM posts WHERE p_author_id = :user_id;""")
+    result = await db.execute(query, {'user_id': user_id})
+    posts = {}
+
+    for row in result:
+        post_id, text_ = row
+        posts[str(post_id)] = {"text": text_}
+
+    return posts
 
 
-def add_group(user_id, name, members):
-    group_id = 20
-    return group_id
+async def add_group(db, user_id, name, members):
+    group_id = uuid.uuid4()
+    query = text("""INSERT INTO groups (g_id, g_name, g_admin_id, g_users) VALUES (:id, :name, :admin, :members)""")
+    await db.execute(query,
+                     {'id': group_id,
+                      'name': name,
+                      'admin': user_id,
+                      'members': members})
+    return str(group_id)
 
 
-def edit_group(user_id, group_id, field, value):
-    pass
+async def edit_group(db, group_id, field, value):
+    query = text("""UPDATE groups SET """ + 'g_' + field + """= :new_value WHERE g_id = :group_id""")
+    await db.execute(query, {'new_value': value, 'group_id': group_id})
 
 
-def delete_group(user_id, group_id):
-    pass
+async def delete_group(db, group_id):
+    query = text("""DELETE FROM groups WHERE g_id = :group_id""")
+    await db.execute(query, {'group_id': group_id})
 
 
-def get_group(user_id, group_id):
-    return {'name': 'BIV201', 'members': ['Daria, Kirill, Alexander, Oleg']}
+async def get_group(db, group_id):
+    query = text("""SELECT * FROM groups where g_id = :group_id""")
+    result = await db.execute(query, {'group_id': group_id})
+    res = result.fetchone()
+    if res:
+        group_id, name, admin_id, members = res
+        return {'name': name,
+                'admin_id': admin_id,
+                'users': members}
+    else:
+        raise HTTPException(status_code=404,
+                            detail='This group is not found')
+
+async def get_groups(db, user_id):
+    query = text("""SELECT * FROM groups WHERE g_admin_id = :user_id;""")
+    result = await db.execute(query, {'user_id': user_id})
+    groups = {}
+
+    for row in result:
+        group_id, name, admin, members = row
+        groups[str(group_id)] = {'name': name,
+                                 'admin_id': admin,
+                                 'users': members}
+    return groups
 
 
-def get_groups(user_id):
-    return ["BIV201", "BIV202", "BIV203"]
-
-
-def add_bank_card(user_id, number, exp_date, cvv):
-    bank_card_id = 20
-    return bank_card_id
+'''def add_bank_card(user_id, number, exp_date, cvv):
+    bank_card = uuid.uuid4()
+    query = text("""INSERT INTO bankcards (bc_id, g_name, g_admin_id, g_users) VALUES (:id, :name, :admin, :members)""")
+    await db.execute(query,
+                     {'id': group_id,
+                      'name': name,
+                      'admin': user_id,
+                      'members': members})
+    return str(group_id)'''
 
 
 def edit_bank_card(user_id, bank_card_id, field, value):

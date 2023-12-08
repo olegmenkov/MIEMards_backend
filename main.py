@@ -91,7 +91,7 @@ async def login(request_body: LoginModel):
 
 
 @router_profile.patch("")
-async def edit_profile(request_body: UserInfo, user_id: str = Depends(authentification.get_current_user)):
+async def edit_profile(request_body: EditProfileModel, user_id: str = Depends(authentification.get_current_user)):
     """
     Редактирует указанное поле в профиле пользователя, если такое есть
     """
@@ -235,7 +235,7 @@ async def get_decks(user_id: str = Depends(authentification.get_current_user)):
 
     users_decks = await db_functions.get_users_decks(db, user_id)
 
-    return JSONResponse(content=list(users_decks))
+    return JSONResponse(content=users_decks)
 
 
 @router_decks.get("/generate_card")
@@ -451,7 +451,7 @@ async def create_post(request_body: PostData, user_id: str = Depends(authentific
         raise HTTPException(status_code=404, detail="User not found")
 
     # Вызываем функцию для добавления колоды в базу данных
-    post_id = db_functions.add_post(user_id, request_body.text)
+    post_id = await db_functions.add_post(db, user_id, request_body.text)
 
     return JSONResponse(content={"post_id": post_id})
 
@@ -465,7 +465,7 @@ async def get_post(post_id: str, user_id: str = Depends(authentification.get_cur
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
-    post_info = db_functions.get_post(post_id, user_id)
+    post_info = await db_functions.get_post(db, post_id)
     return JSONResponse(content=post_info)
 
 
@@ -484,7 +484,7 @@ async def edit_post(request_body: PostData, post_id: str, user_id: str = Depends
             raise HTTPException(status_code=422, detail=f"Invalid field: {field}")
 
         if value is not None:
-            db_functions.edit_post(user_id, post_id)
+            await db_functions.edit_post(db, post_id, field, value)
     return JSONResponse(content={"message": "Post edited successfully"})
 
 
@@ -497,7 +497,7 @@ async def delete_post(post_id: str, user_id: str = Depends(authentification.get_
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
-    db_functions.delete_post(user_id, post_id)
+    await db_functions.delete_post(db, post_id)
 
     return JSONResponse(content={"message": "post deleted successfully"})
 
@@ -511,7 +511,7 @@ async def get_posts(user_id: str = Depends(authentification.get_current_user)):
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
-    users_posts = db_functions.get_posts(user_id)
+    users_posts = await db_functions.get_posts(db, user_id)
 
     return JSONResponse(content=users_posts)
 
@@ -526,7 +526,7 @@ async def create_group(request_body: GroupData, user_id: str = Depends(authentif
         raise HTTPException(status_code=404, detail="User not found")
 
     # Вызываем функцию для добавления колоды в базу данных
-    group_id = db_functions.add_group(user_id, request_body.name, request_body.users)
+    group_id = await db_functions.add_group(db, user_id, request_body.name, request_body.users)
 
     return JSONResponse(content={"group_id": group_id})
 
@@ -540,7 +540,7 @@ async def get_group(group_id: str, user_id: str = Depends(authentification.get_c
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
-    group_info = db_functions.get_post(group_id, user_id)
+    group_info = await db_functions.get_group(db, group_id)
     return JSONResponse(content=group_info)
 
 
@@ -559,7 +559,7 @@ async def edit_post(request_body: GroupData, group_id: str, user_id: str = Depen
             raise HTTPException(status_code=422, detail=f"Invalid field: {field}")
 
         if value is not None:
-            db_functions.edit_post(user_id, group_id)
+            await db_functions.edit_group(db, group_id, field, value)
     return JSONResponse(content={"message": "group edited successfully"})
 
 
@@ -572,7 +572,7 @@ async def delete_group(group_id: str, user_id: str = Depends(authentification.ge
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
-    db_functions.delete_group(user_id, group_id)
+    await db_functions.delete_group(db, group_id)
 
     return JSONResponse(content={"message": "group deleted successfully"})
 
@@ -586,7 +586,7 @@ async def get_groups(user_id: str = Depends(authentification.get_current_user)):
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
-    users_groups = db_functions.get_posts(user_id)
+    users_groups = await db_functions.get_posts(db, user_id)
 
     return JSONResponse(content=users_groups)
 

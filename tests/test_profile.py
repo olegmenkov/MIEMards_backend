@@ -3,8 +3,7 @@ import db
 import db.db_functions
 from db.db_class import Database
 import pytest
-from httpx import AsyncClient
-from main import app
+
 
 HOST = 'localhost'
 PORT = 5433
@@ -70,7 +69,7 @@ async def test_login_user_not_existing(client, database):
 async def test_profile_edited_correctly(client, database):
     # Регистрируемся
     user_data = {"username": "Luka", "password": "12345", "email": "luka@example.com",
-                       "phone": "+38 910-983-6725", "country": "Yugoslavia"}
+                 "phone": "+38 910-983-6725", "country": "Yugoslavia"}
     response = client.post("/profile/register", json=user_data)
     assert response.status_code == 200
 
@@ -140,18 +139,23 @@ async def test_show_users_decks(client):
     headers = {'Authorization': f'Bearer {access_token}', 'Content-Type': 'application/json'}
 
     # Добавляем колоду
-    deck_data = {'name': 'dog', 'description': 'dogDesc'}
-    response = client.post("/decks", json=deck_data, headers=headers)
-    assert response.status_code == 200
-
-    deck_id = response.json()["deck_id"]
+    deck_data1 = {'name': 'dog', 'description': 'who says woof'}
+    deck_id1 = client.post("/decks", json=deck_data1, headers=headers).json()["deck_id"]
+    deck_data2 = {'name': 'cat', 'description': 'who says meow'}
+    deck_id2 = client.post("/decks", json=deck_data2, headers=headers).json()["deck_id"]
 
     # Смотрим колоды пользователя
-    response = client.get(f"/decks/get_deck_by_id?deck_id={deck_id}", headers=headers)
+    response = client.get(f"/decks/show_decks_of_user", headers=headers)
+    deck_data_from_db_1 = response.json()[deck_id1]
+    deck_data_from_db_1.pop("creator")
+
+    deck_data_from_db_2 = response.json()[deck_id2]
+    deck_data_from_db_2.pop("creator")
 
     assert response.status_code == 200
     assert len(response.json()) != 0
-    assert response.json() == deck_data
+    assert deck_data_from_db_1 == deck_data1
+    assert deck_data_from_db_2 == deck_data2
 
 
 @pytest.mark.asyncio
@@ -351,3 +355,163 @@ async def test_edit_interest(database, client):
     assert response.status_code == 200
     interest_data_from_db = await db.db_functions.get_interest(await database, interest_id)
     assert interest_data_from_db == new_interest_data
+
+
+@pytest.mark.asyncio
+async def test_add_post(database, client):
+    # Регистрируемся
+    user_data_input = {"username": "Petya", "password": "12345", "email": "petya@example.com",
+                       "phone": "89109836725", "country": "Russia"}
+    client.post("/profile/register", json=user_data_input)
+
+    # Логинимся под этим новым пользователем, получаем токен, из которого будем брать ID
+    access_token = client.post("/profile/login", json={"email": "petya@example.com", "password": "12345"}).json()[
+        'access_token']
+    user_id = authentification.get_current_user(access_token)
+    headers = {
+        'Authorization': f'Bearer {access_token}',
+        'Content-Type': 'application/json',
+    }
+
+    # Добавим новый пост
+    post_data_input = {
+        "text": "Hi everyone! I am new to MIEMards. Here I am gonna post some useful tips for language learning."}
+    response = client.post("/posts", json=post_data_input, headers=headers)
+    assert response.status_code == 200
+    post_id = response.json()["post_id"]
+    assert post_id
+    post_data_from_db = await db.db_functions.get_post(await database, post_id)
+    assert post_data_from_db == post_data_input
+
+
+@pytest.mark.asyncio
+async def test_delete_post(database, client):
+    # Регистрируемся
+    user_data_input = {"username": "Petya", "password": "12345", "email": "petya@example.com",
+                       "phone": "89109836725", "country": "Russia"}
+    client.post("/profile/register", json=user_data_input)
+
+    # Логинимся под этим новым пользователем, получаем токен, из которого будем брать ID
+    access_token = client.post("/profile/login", json={"email": "petya@example.com", "password": "12345"}).json()[
+        'access_token']
+    user_id = authentification.get_current_user(access_token)
+    headers = {
+        'Authorization': f'Bearer {access_token}',
+        'Content-Type': 'application/json',
+    }
+
+    # Добавим новый пост
+    post_data_input = {
+        "text": "Hi everyone! I am new to MIEMards. Here I am gonna post some useful tips for language learning."}
+    post_id = client.post("/posts", json=post_data_input, headers=headers).json()["post_id"]
+
+    # Удалим его из БД и проверим, что его там правда больше нет
+    await db.db_functions.delete_post(await database, post_id)
+    response = client.get(f"/posts/get_post_by_id/?post_id={post_id}", headers=headers)
+    assert response.status_code == 404
+    assert response.json() == {'detail': 'This post is not found'}
+
+
+def test_get_users_posts(client):
+    # Регистрируемся
+    user_data_input = {"username": "Petya", "password": "12345", "email": "petya@example.com",
+                       "phone": "89109836725", "country": "Russia"}
+    response = client.post("/profile/register", json=user_data_input)
+
+    # Логинимся под этим новым пользователем, получаем токен, из которого будем брать ID
+    access_token = client.post("/profile/login", json={"email": "petya@example.com", "password": "12345"}).json()[
+        'access_token']
+    headers = {
+        'Authorization': f'Bearer {access_token}',
+        'Content-Type': 'application/json',
+    }
+
+    # Добавим ему посты
+    post_data_input1 = {
+        "text": "Hi everyone! I am new to MIEMards. Here I am gonna post some useful tips for language learning."}
+    post_id1 = client.post("/posts", json=post_data_input1, headers=headers).json()["post_id"]
+    post_data_input2 = {
+        "text": "The first tip: always learn new words by their images. Don't translate it to your native language."}
+    post_id2 = client.post("/posts", json=post_data_input2, headers=headers).json()["post_id"]
+
+    # Посмотрим список постов этого пользователя
+    db_data = client.get("/posts/show_posts_of_user", headers=headers).json()
+    assert post_data_input1["text"] == db_data[post_id1]["text"]
+    assert post_data_input2["text"] == db_data[post_id2]["text"]
+
+
+@pytest.mark.asyncio
+async def test_add_group(database, client):
+    # Регистрируемся
+    user_data_input = {"username": "Petya", "password": "12345", "email": "petya@example.com",
+                       "phone": "89109836725", "country": "Russia"}
+    client.post("/profile/register", json=user_data_input)
+
+    # Логинимся под этим новым пользователем, получаем токен, из которого будем брать ID
+    access_token = client.post("/profile/login", json={"email": "petya@example.com", "password": "12345"}).json()[
+        'access_token']
+    headers = {
+        'Authorization': f'Bearer {access_token}',
+        'Content-Type': 'application/json',
+    }
+
+    # Добавим новую группу
+    group_data_input = {"name": "BIV201", "users": ["Darya", "Kirill", "Alexander", "Oleg"]}
+    response = client.post('/groups', json=group_data_input, headers=headers)
+    assert response.status_code == 200
+    group_id = response.json()['group_id']
+    assert group_id
+
+    # Проверим, что она правильно добавилась
+    group_data_from_db = await db.db_functions.get_group(await database, group_id)
+    group_data_from_db.pop("admin_id")
+    assert group_data_input == group_data_from_db
+
+
+@pytest.mark.asyncio
+async def test_edit_group(database, client):
+    # Регистрируемся
+    user_data_input = {"username": "Petya", "password": "12345", "email": "petya@example.com",
+                       "phone": "89109836725", "country": "Russia"}
+    client.post("/profile/register", json=user_data_input)
+
+    # Логинимся под этим новым пользователем, получаем токен, из которого будем брать ID
+    access_token = client.post("/profile/login", json={"email": "petya@example.com", "password": "12345"}).json()[
+        'access_token']
+    headers = {
+        'Authorization': f'Bearer {access_token}',
+        'Content-Type': 'application/json',
+    }
+
+    # Добавим новую группу
+    old_group_data_input = {"name": "BIV201", "users": ["Darya", "Kirill", "Alexander", "Oleg"]}
+    group_id = client.post('/groups', json=old_group_data_input, headers=headers).json()['group_id']
+
+    # Отредактируем её и проверим, что в БД данные изменились
+    new_group_data_input = old_group_data_input
+    new_group_data_input["name"] = "БИВ201 - MIEMards"
+    response = client.patch(f"/groups?group_id={group_id}", json=new_group_data_input, headers=headers)
+    assert response.status_code == 200
+
+    group_data_from_db = await db.db_functions.get_group(await database, group_id)
+    group_data_from_db.pop("admin_id")
+    assert group_data_from_db == new_group_data_input
+
+
+def test_delete_group( client):
+    #  логинимся
+    access_token = client.post("/profile/login", json={"email": "user@example.com", "password": "string"}).json()[
+        'access_token']
+    headers = {'Authorization': f'Bearer {access_token}', 'Content-Type': 'application/json'}
+
+    # Добавим новую группу
+    old_group_data_input = {"name": "BIV201", "users": ["Darya", "Kirill", "Alexander", "Oleg"]}
+    group_id = client.post('/groups', json=old_group_data_input, headers=headers).json()['group_id']
+
+    # Удалим группу
+    client.delete(f'/groups/?group_id={group_id}', headers=headers)
+
+    # Проверим, что она правда удалилась
+    response = client.get(f"/groups/get_group_by_id/?group_id={group_id}", headers=headers)
+    assert response.status_code == 404
+    assert response.json() == {'detail': 'This group is not found'}

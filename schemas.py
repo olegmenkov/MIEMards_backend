@@ -23,11 +23,6 @@ class LoginModel(BaseModel):
     password: str
 
 
-class EditProfileModel(BaseModel):
-    field_to_change: str
-    new_value: str
-
-
 class DeckData(BaseModel):
     name: str
     description: str
@@ -89,7 +84,7 @@ class PostData(BaseModel):
 
 class GroupData(BaseModel):
     name: str
-    users: str
+    users: list[str]
 
 
 class BankCardData(BaseModel):
