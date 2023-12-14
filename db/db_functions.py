@@ -3,7 +3,7 @@ import uuid
 from pydantic import EmailStr
 from fastapi import HTTPException
 from datetime import datetime, timedelta
-
+from encryption_for_db import encrypt, decrypt
 from sqlalchemy import text
 
 from db.database import *
@@ -17,7 +17,7 @@ async def add_user_to_db(db, username: str, password: str, email: EmailStr, phon
     await db.execute(query,
                      {'u_id': uuid.uuid4(),
                       'u_username': username,
-                      'u_password': password,
+                      'u_password': encrypt(password),
                       'u_email': email,
                       'u_phone': phone,
                       'u_country': country})
@@ -27,7 +27,7 @@ async def find_user_by_login_data(db, email: str, password: str):
     query = text("""SELECT * FROM users where u_email = :email and u_password = :password""")
     result = await db.execute(query,
                               {'email': email,
-                               'password': password})
+                               'password': decrypt(password)})
     res = result.fetchone() if result else None
     return res
 
@@ -313,9 +313,9 @@ async def add_bank_card(db, user_id, number, exp_date, cvv):
     await db.execute(query,
                      {'id': bank_card_id,
                       'user_id': user_id,
-                      'number': number,
-                      'exp_date': exp_date,
-                      'cvv': cvv})
+                      'number': encrypt(number),
+                      'exp_date': encrypt(exp_date),
+                      'cvv': encrypt(cvv)})
     return str(bank_card_id)
 
 
@@ -335,7 +335,8 @@ async def get_bank_card(db, bank_card_id):
     res = result.fetchone()
     if res:
         bc_number, bc_exp_date, bc_cvv = res
-        return {'number': bc_number[-4:]}
+        number = decrypt(bc_number)
+        return {'number': number[-4:]}
     else:
         raise HTTPException(status_code=404,
                             detail='This card is not found')

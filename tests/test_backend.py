@@ -4,12 +4,7 @@ import db.db_functions
 from db.db_class import Database
 import pytest
 
-
-HOST = 'localhost'
-PORT = 5433
-DATABASE = 'miemards'
-USERNAME = 'postgres'
-PASSWORD = 'postgres'
+from database_config import HOST, PORT, USERNAME, PASSWORD, DATABASE
 
 
 @pytest.fixture
@@ -627,7 +622,7 @@ async def test_add_bank_card(database, client):
 
     # Проверим, что она появилась в БД с этим айди и с этими данными
     bank_card_data_from_db = await db.db_functions.get_bank_card(await database, bank_card_id)
-    assert bank_card_data["number"][-4:] == bank_card_data_from_db["number"][-4:]
+    assert bank_card_data["number"][-4:] == bank_card_data_from_db["number"]
 
 
 @pytest.mark.asyncio
@@ -657,7 +652,7 @@ async def test_edit_bank_card(database, client):
     client.patch(f"/bank_cards?bank_card_id={bank_card_id}", json=bank_card_data, headers=headers).json()
 
     bank_card_data_from_db = await db.db_functions.get_bank_card(await database, bank_card_id)
-    assert bank_card_data["number"][-4:] == bank_card_data_from_db["number"][-4:]
+    assert bank_card_data["number"][-4:] == bank_card_data_from_db["number"]
 
 
 @pytest.mark.asyncio
@@ -665,8 +660,6 @@ async def test_delete_bank_card(database, client):
     # Регистрируемся
     user_data_input = {"username": "Petya", "password": "12345", "email": "petya@example.com",
                        "phone": "89109836725", "country": "Russia"}
-    response = client.post("/profile/register", json=user_data_input)
-
 
     # Логинимся под этим новым пользователем, получаем токен, из которого будем брать ID
     access_token = client.post("/profile/login", json={"email": "petya@example.com", "password": "12345"}).json()[

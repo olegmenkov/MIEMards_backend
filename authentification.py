@@ -16,7 +16,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 # Загружаем секретный ключ для генерации токена из переменных среды
 load_dotenv()
-SECRET_KEY = os.getenv('SECRET_KEY')
+SECRET_KEY = os.getenv('AUTH_KEY')
 ALGORITHM = "HS256"
 
 
