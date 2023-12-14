@@ -601,7 +601,7 @@ async def create_bank_card(request_body: BankCardData, user_id: str = Depends(au
         raise HTTPException(status_code=404, detail="User not found")
 
     # Вызываем функцию для добавления колоды в базу данных
-    bank_card_id = db_functions.add_bank_card(user_id, request_body.number, request_body.exp_date, request_body.cvv)
+    bank_card_id = await db_functions.add_bank_card(db, user_id, request_body.number, request_body.exp_date, request_body.cvv)
     return JSONResponse(content={"bank_card_id": bank_card_id})
 
 
@@ -614,7 +614,7 @@ async def get_bank_card(bank_card_id: str, user_id: str = Depends(authentificati
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
-    bank_card_info = db_functions.get_bank_card(user_id, bank_card_id)
+    bank_card_info = await db_functions.get_bank_card(db, bank_card_id)
     return JSONResponse(content=bank_card_info)
 
 
@@ -634,7 +634,7 @@ async def edit_bank_card(request_body: BankCardData, bank_card_id: str,
             raise HTTPException(status_code=422, detail=f"Invalid field: {field}")
 
         if value is not None:
-            db_functions.edit_bank_card(user_id, bank_card_id, field, value)
+            await db_functions.edit_bank_card(db, bank_card_id, field, value)
     return JSONResponse(content={"message": "group edited successfully"})
 
 
@@ -647,7 +647,7 @@ async def delete_bank_card(bank_card_id: str, user_id: str = Depends(authentific
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
-    db_functions.delete_bank_card(user_id, bank_card_id)
+    await db_functions.delete_bank_card(db, bank_card_id)
 
     return JSONResponse(content={"message": "bank_card deleted successfully"})
 
@@ -661,7 +661,7 @@ async def get_bank_cards(user_id: str = Depends(authentification.get_current_use
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
-    users_bank_cards = db_functions.get_bank_cards(user_id)
+    users_bank_cards = await db_functions.get_bank_cards(db, user_id)
 
     return JSONResponse(content=users_bank_cards)
 

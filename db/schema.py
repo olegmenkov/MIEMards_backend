@@ -71,9 +71,9 @@ class BankCards(Base):
     __tablename__ = 'bankcards'
 
     bc_id = Column(UUID(as_uuid=True), primary_key=True)
-    # bc_user_id = Column(UUID(as_uuid=True))
+    bc_user_id = Column(UUID(as_uuid=True))
     bc_number = Column(String(128))
-    bc_exp_date = Column(DateTime())
+    bc_exp_date = Column(String(128))
     bc_cvv = Column(String(4))
 
 

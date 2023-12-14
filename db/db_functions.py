@@ -292,6 +292,7 @@ async def get_group(db, group_id):
         raise HTTPException(status_code=404,
                             detail='This group is not found')
 
+
 async def get_groups(db, user_id):
     query = text("""SELECT * FROM groups WHERE g_admin_id = :user_id;""")
     result = await db.execute(query, {'user_id': user_id})
@@ -305,32 +306,50 @@ async def get_groups(db, user_id):
     return groups
 
 
-'''def add_bank_card(user_id, number, exp_date, cvv):
-    bank_card = uuid.uuid4()
-    query = text("""INSERT INTO bankcards (bc_id, g_name, g_admin_id, g_users) VALUES (:id, :name, :admin, :members)""")
+async def add_bank_card(db, user_id, number, exp_date, cvv):
+    bank_card_id = uuid.uuid4()
+    query = text(
+        """INSERT INTO bankcards (bc_id, bc_user_id, bc_number, bc_exp_date, bc_cvv) VALUES (:id, :user_id, :number, :exp_date, :cvv)""")
     await db.execute(query,
-                     {'id': group_id,
-                      'name': name,
-                      'admin': user_id,
-                      'members': members})
-    return str(group_id)'''
+                     {'id': bank_card_id,
+                      'user_id': user_id,
+                      'number': number,
+                      'exp_date': exp_date,
+                      'cvv': cvv})
+    return str(bank_card_id)
 
 
-def edit_bank_card(user_id, bank_card_id, field, value):
-    pass
+async def edit_bank_card(db, bank_card_id, field, value):
+    query = text("""UPDATE bankcards SET """ + 'bc_' + field + """= :new_value WHERE bc_id = :bc_id""")
+    await db.execute(query, {'new_value': value, 'bc_id': bank_card_id})
 
 
-def delete_bank_card(user_id, bank_card_id):
-    pass
+async def delete_bank_card(db, bank_card_id):
+    query = text("""DELETE FROM bankcards WHERE bc_id = :bank_card_id""")
+    await db.execute(query, {'bank_card_id': bank_card_id})
 
 
-def get_bank_card(user_id, bank_card_id):
-    number = '1234567890123456'
-    return number[-4:]
+async def get_bank_card(db, bank_card_id):
+    query = text("""SELECT bc_number, bc_exp_date, bc_cvv FROM bankcards where bc_id = :bank_card_id""")
+    result = await db.execute(query, {'bank_card_id': bank_card_id})
+    res = result.fetchone()
+    if res:
+        bc_number, bc_exp_date, bc_cvv = res
+        return {'number': bc_number[-4:]}
+    else:
+        raise HTTPException(status_code=404,
+                            detail='This card is not found')
 
 
-def get_bank_cards(user_id):
-    return ['3144', '7302']
+async def get_bank_cards(db, user_id):
+    query = text("""SELECT * FROM bankcards WHERE bc_user_id = :user_id;""")
+    result = await db.execute(query, {'user_id': user_id})
+    cards = {}
+
+    for row in result:
+        bc_id, bc_user_id, bc_number, bc_exp_date, bc_cvv = row
+        cards[str(bc_id)] = {'number': bc_number[-4:]}
+    return cards
 
 
 async def add_account(db, user_id, type_, link):
