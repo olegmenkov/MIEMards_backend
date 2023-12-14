@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, DateTime, BigInteger, ARRAY
+from sqlalchemy import Column, String, DateTime, BigInteger, ARRAY, LargeBinary
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -38,8 +38,8 @@ class Users(Base):
     __tablename__ = 'users'
     u_id = Column(UUID(as_uuid=True), primary_key=True)
     u_username = Column(String(128))
-    u_password = Column(String(128))
     u_email = Column(String(128))
+    u_password = Column(LargeBinary)
     u_phone = Column(String(128))
     u_country = Column(String(128))
 

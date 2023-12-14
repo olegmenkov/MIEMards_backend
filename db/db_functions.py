@@ -3,11 +3,27 @@ import uuid
 from pydantic import EmailStr
 from fastapi import HTTPException
 from datetime import datetime, timedelta
-from encryption_for_db import encrypt, decrypt
 from sqlalchemy import text
 
 from db.database import *
+from cryptography.fernet import Fernet
+from dotenv import load_dotenv
+import os
 
+
+def encrypt(string):
+    password = bytes(string, 'utf-8')
+    load_dotenv()
+    key = bytes(str(os.getenv('ENC_KEY')), 'utf-8')
+    f = Fernet(key)
+    return f.encrypt(password)
+
+
+def decrypt(string):
+    load_dotenv()
+    key = bytes(str(os.getenv('ENC_KEY')), 'utf-8')
+    f = Fernet(key)
+    return f.decrypt(string).decode('utf-8')
 
 async def add_user_to_db(db, username: str, password: str, email: EmailStr, phone: str, country: str):
     query = text("""
@@ -320,6 +336,8 @@ async def add_bank_card(db, user_id, number, exp_date, cvv):
 
 
 async def edit_bank_card(db, bank_card_id, field, value):
+    if field == "password":
+        value = encrypt(value)
     query = text("""UPDATE bankcards SET """ + 'bc_' + field + """= :new_value WHERE bc_id = :bc_id""")
     await db.execute(query, {'new_value': value, 'bc_id': bank_card_id})
 
