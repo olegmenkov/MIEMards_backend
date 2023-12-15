@@ -16,7 +16,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 # Загружаем секретный ключ для генерации токена из переменных среды
 load_dotenv()
-SECRET_KEY = os.getenv('AUTH_KEY')
+AUTH_KEY = os.getenv('AUTH_KEY')
 ALGORITHM = "HS256"
 
 
@@ -29,7 +29,7 @@ def create_access_token(data: dict):
     to_encode = data.copy()     # определяем, что кодировать (у нас это будет айди пользователя)
     expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})       # добавляем время, когда токен перестанет действовать
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)    # кодируем
+    encoded_jwt = jwt.encode(to_encode, AUTH_KEY, algorithm=ALGORITHM)    # кодируем
     return encoded_jwt
 
 
@@ -44,7 +44,7 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])     # раскодируем инфу
+        payload = jwt.decode(token, AUTH_KEY, algorithms=[ALGORITHM])     # раскодируем инфу
         user_id: str = payload.get("sub")   # получаем оттуда id
         if user_id is None:
             raise credentials_exception

@@ -8,10 +8,17 @@
 ## Добавить файл .env 
 При локальном запуске нужно создать в корневой директории MIEMards_backend файл ```.env``` и вписать в него следующее:
 ```
-AUTH_KEY=your-secret-key
-ENC_KEY=another-secret-key
+AUTH_KEY=any-key
+ENC_KEY=generated-fernet-key
 ```
-без пробелов и кавычек. Замените ```your-secret-key``` и ```another-secret-key``` на секретные ключи для шифрования. Вы можете их придумать или сгенерировать любым удобным способом.
+без пробелов и кавычек. 
+Замените ```any-key``` и ```generated-ferner-key``` на секретные ключи для шифрования. 
+Вы можете придумать или сгенерировать ```any-key``` любым удобным способом, а для получения ```generated-fernet-key``` выполните следующий скрипт и вставьте то, что он вывел, без кавычек и символа 'b'
+```python
+from cryptography.fernet import Fernet
+key = Fernet.generate_key()
+print(key)
+```
 
 ## Установить зависимости
 
