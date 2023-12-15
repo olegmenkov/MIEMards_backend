@@ -3,13 +3,44 @@ import uuid
 from pydantic import EmailStr
 from fastapi import HTTPException
 from datetime import datetime, timedelta
-
 from sqlalchemy import text
 
 from db.database import *
+from cryptography.fernet import Fernet
+from dotenv import load_dotenv
+import os
+
+from loguru import logger
+
+
+def encrypt(string):
+    load_dotenv()
+    key = bytes(str(os.getenv('ENC_KEY')), 'utf-8')
+    f = Fernet(key)
+    password = bytes(string, 'utf-8')
+    return f.encrypt(password)
+
+
+def decrypt(string):
+    try:
+        load_dotenv()
+        key = bytes(str(os.getenv('ENC_KEY')), 'utf-8')
+        f = Fernet(key)
+        decrypted_data = f.decrypt(string)
+        return decrypted_data.decode('utf-8')
+    except Exception as e:
+        print(f"Error during decryption: {e}")
+        return None
 
 
 async def add_user_to_db(db, username: str, password: str, email: EmailStr, phone: str, country: str):
+    query = text("""SELECT u_email FROM users where u_email = :email""")
+    result = await db.execute(query,
+                              {'email': email})
+    res = result.fetchone()
+    if res:
+        raise HTTPException(status_code=409, detail="Email already registered")
+
     query = text("""
             INSERT INTO users (u_id, u_username, u_password, u_email, u_phone, u_country) 
             VALUES (:u_id, :u_username, :u_password, :u_email, :u_phone, :u_country)
@@ -17,19 +48,27 @@ async def add_user_to_db(db, username: str, password: str, email: EmailStr, phon
     await db.execute(query,
                      {'u_id': uuid.uuid4(),
                       'u_username': username,
-                      'u_password': password,
+                      'u_password': encrypt(password),
                       'u_email': email,
                       'u_phone': phone,
                       'u_country': country})
 
 
 async def find_user_by_login_data(db, email: str, password: str):
-    query = text("""SELECT * FROM users where u_email = :email and u_password = :password""")
+    query = text("""SELECT * FROM users where u_email = :email""")
     result = await db.execute(query,
-                              {'email': email,
-                               'password': password})
-    res = result.fetchone() if result else None
-    return res
+                              {'email': email})
+    res = result.fetchone()
+    if not res:
+        logger.debug('User does not exist')
+        return None
+    logger.debug(f"res {res}")
+    u_id, u_username, u_email, u_password, u_phone, u_country = res
+    if decrypt(u_password) == password:
+        return res
+    else:
+        logger.debug(f"not matching password. db: {decrypt(u_password)}, input: {password}")
+        return None
 
 
 async def get_userdata_by_id(db, user_id):
@@ -46,6 +85,8 @@ async def get_userdata_by_id(db, user_id):
 
 
 async def edit_users_profile(db, user_id, field_to_change: str, new_value: str):
+    if field_to_change == 'password':
+        new_value = decrypt(new_value)
     query = text("""UPDATE users SET """ + 'u_' + field_to_change + """= :new_value WHERE u_id = :user_id""")
     await db.execute(query, {'new_value': new_value, 'user_id': user_id})
 
@@ -313,13 +354,15 @@ async def add_bank_card(db, user_id, number, exp_date, cvv):
     await db.execute(query,
                      {'id': bank_card_id,
                       'user_id': user_id,
-                      'number': number,
-                      'exp_date': exp_date,
-                      'cvv': cvv})
+                      'number': encrypt(number),
+                      'exp_date': encrypt(exp_date),
+                      'cvv': encrypt(cvv)})
     return str(bank_card_id)
 
 
 async def edit_bank_card(db, bank_card_id, field, value):
+    if field in ['number', 'cvv', 'exp_date']:
+        value = encrypt(value)
     query = text("""UPDATE bankcards SET """ + 'bc_' + field + """= :new_value WHERE bc_id = :bc_id""")
     await db.execute(query, {'new_value': value, 'bc_id': bank_card_id})
 
@@ -335,7 +378,8 @@ async def get_bank_card(db, bank_card_id):
     res = result.fetchone()
     if res:
         bc_number, bc_exp_date, bc_cvv = res
-        return {'number': bc_number[-4:]}
+        number = decrypt(bc_number)
+        return {'number': number[-4:]}
     else:
         raise HTTPException(status_code=404,
                             detail='This card is not found')

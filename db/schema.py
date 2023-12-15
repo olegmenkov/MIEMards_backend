@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, DateTime, BigInteger, ARRAY
+from sqlalchemy import Column, String, DateTime, BigInteger, ARRAY, LargeBinary
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -38,8 +38,8 @@ class Users(Base):
     __tablename__ = 'users'
     u_id = Column(UUID(as_uuid=True), primary_key=True)
     u_username = Column(String(128))
-    u_password = Column(String(128))
     u_email = Column(String(128))
+    u_password = Column(LargeBinary)
     u_phone = Column(String(128))
     u_country = Column(String(128))
 
@@ -72,10 +72,9 @@ class BankCards(Base):
 
     bc_id = Column(UUID(as_uuid=True), primary_key=True)
     bc_user_id = Column(UUID(as_uuid=True))
-    bc_number = Column(String(128))
-    bc_exp_date = Column(String(128))
-    bc_cvv = Column(String(4))
-
+    bc_number = Column(LargeBinary)
+    bc_exp_date = Column(LargeBinary)
+    bc_cvv = Column(LargeBinary)
 
 class SocialMediaAccounts(Base):
     __tablename__ = 'socialmediaaccounts'
