@@ -10,22 +10,37 @@ from cryptography.fernet import Fernet
 from dotenv import load_dotenv
 import os
 
+from loguru import logger
+
 
 def encrypt(string):
-    password = bytes(string, 'utf-8')
     load_dotenv()
     key = bytes(str(os.getenv('ENC_KEY')), 'utf-8')
     f = Fernet(key)
+    password = bytes(string, 'utf-8')
     return f.encrypt(password)
 
 
 def decrypt(string):
-    load_dotenv()
-    key = bytes(str(os.getenv('ENC_KEY')), 'utf-8')
-    f = Fernet(key)
-    return f.decrypt(string).decode('utf-8')
+    try:
+        load_dotenv()
+        key = bytes(str(os.getenv('ENC_KEY')), 'utf-8')
+        f = Fernet(key)
+        decrypted_data = f.decrypt(string)
+        return decrypted_data.decode('utf-8')
+    except Exception as e:
+        print(f"Error during decryption: {e}")
+        return None
+
 
 async def add_user_to_db(db, username: str, password: str, email: EmailStr, phone: str, country: str):
+    query = text("""SELECT u_email FROM users where u_email = :email""")
+    result = await db.execute(query,
+                              {'email': email})
+    res = result.fetchone()
+    if res:
+        raise HTTPException(status_code=409, detail="Email already registered")
+
     query = text("""
             INSERT INTO users (u_id, u_username, u_password, u_email, u_phone, u_country) 
             VALUES (:u_id, :u_username, :u_password, :u_email, :u_phone, :u_country)
@@ -40,12 +55,20 @@ async def add_user_to_db(db, username: str, password: str, email: EmailStr, phon
 
 
 async def find_user_by_login_data(db, email: str, password: str):
-    query = text("""SELECT * FROM users where u_email = :email and u_password = :password""")
+    query = text("""SELECT * FROM users where u_email = :email""")
     result = await db.execute(query,
-                              {'email': email,
-                               'password': decrypt(password)})
-    res = result.fetchone() if result else None
-    return res
+                              {'email': email})
+    res = result.fetchone()
+    if not res:
+        logger.debug('User does not exist')
+        return None
+    logger.debug(f"res {res}")
+    u_id, u_username, u_email, u_password, u_phone, u_country = res
+    if decrypt(u_password) == password:
+        return res
+    else:
+        logger.debug(f"not matching password. db: {decrypt(u_password)}, input: {password}")
+        return None
 
 
 async def get_userdata_by_id(db, user_id):
@@ -62,6 +85,8 @@ async def get_userdata_by_id(db, user_id):
 
 
 async def edit_users_profile(db, user_id, field_to_change: str, new_value: str):
+    if field_to_change == 'password':
+        new_value = decrypt(new_value)
     query = text("""UPDATE users SET """ + 'u_' + field_to_change + """= :new_value WHERE u_id = :user_id""")
     await db.execute(query, {'new_value': new_value, 'user_id': user_id})
 
@@ -336,7 +361,7 @@ async def add_bank_card(db, user_id, number, exp_date, cvv):
 
 
 async def edit_bank_card(db, bank_card_id, field, value):
-    if field == "password":
+    if field in ['number', 'cvv', 'exp_date']:
         value = encrypt(value)
     query = text("""UPDATE bankcards SET """ + 'bc_' + field + """= :new_value WHERE bc_id = :bc_id""")
     await db.execute(query, {'new_value': value, 'bc_id': bank_card_id})
