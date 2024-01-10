@@ -611,9 +611,9 @@ async def test_add_bank_card(database, client):
     response = client.post("/bank_cards", json=bank_card_data, headers=headers)
     assert response.status_code == 200
     bank_card_id = response.json()["bank_card_id"]
-
     # Проверим, что она появилась в БД с этим айди и с этими данными
     bank_card_data_from_db = await db.db_functions.get_bank_card(await database, bank_card_id)
+
     assert bank_card_data["number"][-4:] == bank_card_data_from_db["number"]
 
 

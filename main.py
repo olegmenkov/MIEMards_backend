@@ -13,6 +13,8 @@ import authentification
 from db.db_class import Database
 from schemas import *
 
+from loguru import logger
+
 from database_config import HOST, PORT, USERNAME, PASSWORD, DATABASE
 
 
@@ -111,10 +113,6 @@ async def get_user_data(user_id: str = Depends(authentification.get_current_user
         raise HTTPException(status_code=404, detail="User not found")
 
     user_data = await db_functions.get_userdata_by_id(db, user_id)
-    user_data = {"username": user_data.u_username,
-                 "email": user_data.u_email,
-                 "phone": user_data.u_phone,
-                 "country": user_data.u_country}
 
     return JSONResponse(content=user_data)
 
@@ -328,7 +326,6 @@ async def get_cards(deck_id: str, user_id: str = Depends(authentification.get_cu
         raise HTTPException(status_code=404, detail="User not found")
 
     cards = await db_functions.get_decks_cards(db, deck_id)
-
     return JSONResponse(content=cards)
 
 

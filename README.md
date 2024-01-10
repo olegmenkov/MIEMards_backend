@@ -19,6 +19,11 @@ from cryptography.fernet import Fernet
 key = Fernet.generate_key()
 print(key)
 ```
+Пример файла:
+```
+AUTH_KEY=my-very-secret-key
+ENC_KEY=SeaEe_J_TOrbkRnkoqRq3aPfE8cioZuntSx679oShxU=
+```
 
 ## Установить зависимости
 
