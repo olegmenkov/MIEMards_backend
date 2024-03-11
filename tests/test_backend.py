@@ -426,7 +426,7 @@ def test_get_users_posts(client):
     assert post_data_input1["text"] == db_data[post_id1]["text"]
     assert post_data_input2["text"] == db_data[post_id2]["text"]
 
-
+'''
 @pytest.mark.asyncio
 async def test_add_group(database, client):
     # Регистрируемся
@@ -587,7 +587,7 @@ def test_get_accs(client):
     assert accounts_data_from_response[account_id1] == acc_data1
     assert accounts_data_from_response[account_id2] == acc_data2
 
-
+'''
 @pytest.mark.asyncio
 async def test_add_bank_card(database, client):
     # Регистрируемся

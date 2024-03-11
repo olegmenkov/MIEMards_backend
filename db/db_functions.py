@@ -296,7 +296,7 @@ async def get_posts(db, user_id):
 
     return posts
 
-
+'''
 async def add_group(db, user_id, name, members):
     group_id = uuid.uuid4()
     query = text("""INSERT INTO groups (g_id, g_name, g_admin_id, g_users) VALUES (:id, :name, :admin, :members)""")
@@ -342,7 +342,7 @@ async def get_groups(db, user_id):
         groups[str(group_id)] = {'name': name,
                                  'admin_id': admin,
                                  'users': members}
-    return groups
+    return groups'''
 
 
 async def add_bank_card(db, user_id, number, exp_date, cvv):
@@ -390,10 +390,10 @@ async def get_bank_cards(db, user_id):
 
     for row in result:
         bc_id, bc_user_id, bc_number, bc_exp_date, bc_cvv = row
-    cards[str(bc_id)] = {'number': str(decrypt(bc_number))[-4:]}
+        cards[str(bc_id)] = {'number': str(decrypt(bc_number))[-4:]}
     return cards
 
-
+'''
 async def add_account(db, user_id, type_, link):
     acc_id = uuid.uuid4()
     query = text("""INSERT INTO socialmediaaccounts VALUES (:id, :user_id, :type, :link)""")
@@ -406,8 +406,16 @@ async def add_account(db, user_id, type_, link):
 
 
 async def edit_account(db, account_id, field, value):
-    table_column = {"type": "SMA_type", "link": "SMA_link"}
-    query = text("""UPDATE socialmediaaccounts SET """ + table_column[field] + """= :new_value WHERE sma_id = :account_id""")
+    table_column = {'type': "sma_type", 'link': "sma_link"}
+
+    if field == "type":
+        query = text(
+            """UPDATE socialmediaaccounts SET ababa = :new_value WHERE sma_id = :account_id""")
+
+    if field == "link":
+        query = text(
+            """UPDATE socialmediaaccounts SET obobo = :new_value WHERE sma_id = :account_id""")
+
     await db.execute(query, {'new_value': value, 'account_id': account_id})
 
 
@@ -438,7 +446,7 @@ async def get_accounts(db, user_id):
         acc_id, user_id, type_, link = row
         accounts[str(acc_id)] = {'type': type_,
                                  'link': link}
-    return accounts
+    return accounts'''
 
 
 def update_achievements(user_id, words_learned, decks_learned_fully, decks_learned_partly):

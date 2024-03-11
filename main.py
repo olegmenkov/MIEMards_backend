@@ -42,9 +42,9 @@ router_decks = APIRouter()
 router_cards = APIRouter()
 router_interests = APIRouter()
 router_posts = APIRouter()
-router_groups = APIRouter()
+# router_groups = APIRouter()
 router_bank_cards = APIRouter()
-router_accounts = APIRouter()
+# router_accounts = APIRouter()
 router_statistics = APIRouter()
 router_rankings = APIRouter()
 
@@ -414,7 +414,7 @@ async def delete_interest(interest_id: str, user_id: str = Depends(authentificat
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
-    db_functions.delete_interest(user_id, interest_id)
+    await db_functions.delete_interest(user_id, interest_id)
 
     return JSONResponse(content={"message": "Interest deleted successfully"})
 
@@ -428,7 +428,7 @@ async def get_interests(user_id: str = Depends(authentification.get_current_user
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
-    users_interests = db_functions.get_interests(user_id)
+    users_interests = await db_functions.get_interests(db, user_id)
 
     return JSONResponse(content=users_interests)
 
@@ -507,7 +507,7 @@ async def get_posts(user_id: str = Depends(authentification.get_current_user)):
 
     return JSONResponse(content=users_posts)
 
-
+'''
 @router_groups.post("")
 async def create_group(request_body: GroupData, user_id: str = Depends(authentification.get_current_user)):
     """
@@ -581,7 +581,7 @@ async def get_groups(user_id: str = Depends(authentification.get_current_user)):
     users_groups = await db_functions.get_posts(db, user_id)
 
     return JSONResponse(content=users_groups)
-
+'''
 
 @router_bank_cards.post("")
 async def create_bank_card(request_body: BankCardData, user_id: str = Depends(authentification.get_current_user)):
@@ -627,7 +627,7 @@ async def edit_bank_card(request_body: BankCardData, bank_card_id: str,
 
         if value is not None:
             await db_functions.edit_bank_card(db, bank_card_id, field, value)
-    return JSONResponse(content={"message": "group edited successfully"})
+    return JSONResponse(content={"message": "bank card edited successfully"})
 
 
 @router_bank_cards.delete("")
@@ -657,7 +657,7 @@ async def get_bank_cards(user_id: str = Depends(authentification.get_current_use
 
     return JSONResponse(content=users_bank_cards)
 
-
+'''
 @router_accounts.post("")
 async def create_account(request_body: SocialMediaAccount, user_id: str = Depends(authentification.get_current_user)):
     """
@@ -743,7 +743,7 @@ async def get_accounts(user_id: str = Depends(authentification.get_current_user)
     users_accounts = await db_functions.get_accounts(db, user_id)
 
     return JSONResponse(content=users_accounts)
-
+'''
 
 @router_statistics.post("")
 async def new_game_results(request_body: GameResults, user_id: str = Depends(authentification.get_current_user)):
@@ -871,8 +871,8 @@ app.include_router(router_decks, prefix="/decks", tags=["Decks"])
 app.include_router(router_cards, prefix="/cards", tags=["Cards"])
 app.include_router(router_interests, prefix="/interests", tags=["Interests"])
 app.include_router(router_posts, prefix="/posts", tags=["Posts"])
-app.include_router(router_groups, prefix="/groups", tags=["Groups"])
+# app.include_router(router_groups, prefix="/groups", tags=["Groups"])
 app.include_router(router_bank_cards, prefix="/bank_cards", tags=["Bank cards"])
-app.include_router(router_accounts, prefix="/social_accounts", tags=["Social media accounts"])
+# app.include_router(router_accounts, prefix="/social_accounts", tags=["Social media accounts"])
 app.include_router(router_statistics, prefix="/statistics", tags=["Statistics"])
 app.include_router(router_rankings, prefix="/rankings", tags=["Rankings"])

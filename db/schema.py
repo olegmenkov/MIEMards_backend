@@ -76,9 +76,10 @@ class BankCards(Base):
     bc_exp_date = Column(LargeBinary)
     bc_cvv = Column(LargeBinary)
 
+
 class SocialMediaAccounts(Base):
     __tablename__ = 'socialmediaaccounts'
     sma_id = Column(UUID(as_uuid=True), primary_key=True)
     sma_user_id = Column(UUID(as_uuid=True))
-    SMA_type = Column(String(128))
-    SMA_link = Column(String(128))
+    ababa = Column(String(128))
+    obobo = Column(String(128))
