@@ -17,7 +17,6 @@ from loguru import logger
 
 from database_config import HOST, PORT, USERNAME, PASSWORD, DATABASE
 
-
 db = Database(HOST, PORT, USERNAME, PASSWORD, DATABASE)
 app = FastAPI()
 
@@ -204,7 +203,7 @@ async def delete_deck(deck_id: str, user_id: str = Depends(authentification.get_
         raise HTTPException(status_code=404, detail="User not found")
 
     await db_functions.delete_deck_from_db(db, deck_id)
-    
+
     return JSONResponse(content={"message": "Deck deleted successfully"})
 
 
@@ -256,7 +255,7 @@ async def create_card(card_data: CardData, user_id: str = Depends(authentificati
 
     # Вызываем функцию для добавления карты в базу данных
     card_id = await db_functions.add_card(db, card_data.english_word, card_data.translation, card_data.explanation,
-                                    card_data.deck_id)
+                                          card_data.deck_id)
     return JSONResponse(content={"card_id": card_id})
 
 
@@ -386,7 +385,8 @@ async def get_interest(interest_id: str, user_id: str = Depends(authentification
 
 
 @router_interests.patch("")
-async def edit_interest(request_body: InterestData, interest_id: str, user_id: str = Depends(authentification.get_current_user)):
+async def edit_interest(request_body: InterestData, interest_id: str,
+                        user_id: str = Depends(authentification.get_current_user)):
     """
     Меняет интерес
     """
@@ -507,6 +507,7 @@ async def get_posts(user_id: str = Depends(authentification.get_current_user)):
 
     return JSONResponse(content=users_posts)
 
+
 '''
 @router_groups.post("")
 async def create_group(request_body: GroupData, user_id: str = Depends(authentification.get_current_user)):
@@ -583,6 +584,7 @@ async def get_groups(user_id: str = Depends(authentification.get_current_user)):
     return JSONResponse(content=users_groups)
 '''
 
+
 @router_bank_cards.post("")
 async def create_bank_card(request_body: BankCardData, user_id: str = Depends(authentification.get_current_user)):
     """
@@ -593,7 +595,8 @@ async def create_bank_card(request_body: BankCardData, user_id: str = Depends(au
         raise HTTPException(status_code=404, detail="User not found")
 
     # Вызываем функцию для добавления колоды в базу данных
-    bank_card_id = await db_functions.add_bank_card(db, user_id, request_body.number, request_body.exp_date, request_body.cvv)
+    bank_card_id = await db_functions.add_bank_card(db, user_id, request_body.number, request_body.exp_date,
+                                                    request_body.cvv)
     return JSONResponse(content={"bank_card_id": bank_card_id})
 
 
@@ -656,6 +659,7 @@ async def get_bank_cards(user_id: str = Depends(authentification.get_current_use
     users_bank_cards = await db_functions.get_bank_cards(db, user_id)
 
     return JSONResponse(content=users_bank_cards)
+
 
 '''
 @router_accounts.post("")
@@ -772,7 +776,13 @@ async def statistics_for_today(user_id: str = Depends(authentification.get_curre
 
     stats = await db_functions.calculate_daily_stats(db, user_id)
     total_words, fully_learned_decks, partly_learned_decks, games = [param if param else 0 for param in stats]
-    ranking = 'calculate later'
+
+    ranking = None
+    top_all_today = await db_functions.calculate_daily_rating(db)
+    for place_from_0 in range(len(top_all_today)):
+        if top_all_today[place_from_0]['user_id'] == user_id:
+            ranking = place_from_0 + 1
+
     return JSONResponse(
         content={"total_words": int(total_words), "ranking": ranking, "fully_learned_decks": int(fully_learned_decks),
                  "partly_learned_decks": int(partly_learned_decks), "games": games})
@@ -789,7 +799,13 @@ async def statistics_for_week(user_id: str = Depends(authentification.get_curren
 
     stats = await db_functions.calculate_weekly_stats(db, user_id)
     total_words, fully_learned_decks, partly_learned_decks, games = [param if param else 0 for param in stats]
-    ranking = 'calculate later'
+
+    ranking = None
+    top_all_week = await db_functions.calculate_weekly_rating(db)
+    for place_from_0 in range(len(top_all_week)):
+        if top_all_week[place_from_0]['user_id'] == user_id:
+            ranking = place_from_0 + 1
+
     return JSONResponse(
         content={"total_words": int(total_words), "ranking": ranking, "fully_learned_decks": int(fully_learned_decks),
                  "partly_learned_decks": int(partly_learned_decks), "games": games})
@@ -806,10 +822,17 @@ async def statistics_for_alltime(user_id: str = Depends(authentification.get_cur
 
     stats = await db_functions.calculate_alltime_stats(db, user_id)
     total_words, fully_learned_decks, partly_learned_decks, games = [param if param else 0 for param in stats]
-    ranking = 'calculate later'
+
+    ranking = None
+    top_all_alltime = await db_functions.calculate_alltime_rating(db)
+    for place_from_0 in range(len(top_all_alltime)):
+        if top_all_alltime[place_from_0]['user_id'] == user_id:
+            ranking = place_from_0 + 1
+
     return JSONResponse(
         content={"total_words": int(total_words), "ranking": ranking, "fully_learned_decks": int(fully_learned_decks),
                  "partly_learned_decks": int(partly_learned_decks), "games": games})
+
 
 @router_rankings.get("/for_today")
 async def rankings_today(user_id: str = Depends(authentification.get_current_user)):
