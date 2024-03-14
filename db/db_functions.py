@@ -3,7 +3,7 @@ import uuid
 from pydantic import EmailStr
 from fastapi import HTTPException
 from datetime import datetime, timedelta
-from sqlalchemy import text
+from sqlalchemy import text, select, func
 
 from db.database import *
 from cryptography.fernet import Fernet
@@ -204,7 +204,8 @@ async def get_decks_cards(db, deck_id: str):
 
     for row in result:
         card_id, english_word, translation, explanation = row
-        cards[str(card_id)] = {"deck_id": str(deck_id), "english_word": english_word, "translation": translation, "explanation": explanation}
+        cards[str(card_id)] = {"deck_id": str(deck_id), "english_word": english_word, "translation": translation,
+                               "explanation": explanation}
 
     return cards
 
@@ -295,6 +296,7 @@ async def get_posts(db, user_id):
         posts[str(post_id)] = {"text": text_}
 
     return posts
+
 
 '''
 async def add_group(db, user_id, name, members):
@@ -393,6 +395,7 @@ async def get_bank_cards(db, user_id):
         cards[str(bc_id)] = {'number': str(decrypt(bc_number))[-4:]}
     return cards
 
+
 '''
 async def add_account(db, user_id, type_, link):
     acc_id = uuid.uuid4()
@@ -449,114 +452,112 @@ async def get_accounts(db, user_id):
     return accounts'''
 
 
-def update_achievements(user_id, words_learned, decks_learned_fully, decks_learned_partly):
+async def update_achievements(db, user_id, words_learned, decks_learned_fully, decks_learned_partly):
+    game_id = uuid.uuid4()
     today = datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)
 
-    # If the user exists, update their achievements for today
-    if user_id in achievements:
-        user_data = achievements[user_id]
-        if today in user_data:
-            user_data[today]["words_learned"] += words_learned
-            user_data[today]["decks_learned_fully"] += decks_learned_fully
-            user_data[today]["decks_learned_partly"] += decks_learned_partly
-            user_data[today]["games"] += 1
-        else:
-            user_data[today] = {"words_learned": words_learned,
-                                "decks_learned_fully": decks_learned_fully,
-                                "decks_learned_partly": decks_learned_partly,
-                                "games": 1}
-    else:
-        # If the user does not exist, create a new entry for them
-        achievements[user_id] = {today: {"words_learned": words_learned,
-                                         "decks_learned_fully": decks_learned_fully,
-                                         "decks_learned_partly": decks_learned_partly,
-                                         "games": 1}}
+    query = text("""INSERT INTO games (a_id, a_user, a_date, a_words, a_decks_full, a_decks_part) 
+    VALUES (:game_id, :user_id, :today, :words, :decks_full, :decks_part);""")
+
+    await db.execute(query,
+                     {'game_id': game_id, 'user_id': user_id, 'today': today, 'words': words_learned,
+                      'decks_full': decks_learned_fully,
+                      'decks_part': decks_learned_partly})
 
 
-def get_results_for_period(user_id, period_start, period_end):
-    total_words = 0
-    fully_learned_decks = 0
-    partly_learned_decks = 0
-    total_games = 0
-
-    user_data = achievements.get(user_id, {})
-
-    for date, results in user_data.items():
-        if period_start <= date <= period_end:
-            total_words += results["words_learned"]
-            fully_learned_decks += results["decks_learned_fully"]
-            partly_learned_decks += results["decks_learned_partly"]
-            total_games += results["games"]
-
-    return total_words, fully_learned_decks, partly_learned_decks, total_games
+async def calculate_daily_stats(db, user_id):
+    query = text("""
+        SELECT 
+            SUM(a_words) AS total_words_day,
+            SUM(a_decks_full) AS total_decks_full_day,
+            SUM(a_decks_part) AS total_decks_part_day,
+            COUNT(*) AS total_games_day
+        FROM games
+        WHERE a_date = CURRENT_DATE AND a_user = :user_id;
+    """)
+    result = await db.execute(query, {'user_id': user_id})
+    return list(result.fetchone())
 
 
-def get_results_for_today(user_id):
-    try:
-        today = datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)
-        return get_results_for_period(user_id, today, today + timedelta(days=1))
-    except:
-        return 0, 0, 0, 0
+async def calculate_weekly_stats(db, user_id):
+    query = text("""
+        SELECT 
+            SUM(a_words) AS total_words_day,
+            SUM(a_decks_full) AS total_decks_full_day,
+            SUM(a_decks_part) AS total_decks_part_day,
+            COUNT(*) AS total_games_day
+        FROM games
+        WHERE CURRENT_DATE - INTERVAL '7 days' <= a_date AND a_date <= CURRENT_DATE AND a_user = :user_id;
+    """)
+    result = await db.execute(query, {'user_id': user_id})
+    return list(result.fetchone())
 
 
-def get_weekly_results(user_id):
-    today = datetime.today()
-    week_start = today - timedelta(days=today.weekday())  # Assuming Monday is the start of the week
-    week_end = week_start + timedelta(days=6)
-
-    return get_results_for_period(user_id, week_start, week_end)
-
-
-def get_total_results(user_id):
-    today = datetime.today()
-    start_date = min(date for date in achievements.get(user_id, {})) if user_id in achievements else today
-
-    return get_results_for_period(user_id, start_date, today)
-
-
-def get_top_all(metric):
-    # Create a list of tuples containing user_id and the corresponding metric
-    user_metric_tuples = [(user_id, metric(user_data)) for user_id, user_data in achievements.items()]
-
-    # Sort the list by the metric in descending order
-    sorted_user_metric = sorted(user_metric_tuples, key=lambda x: x[1], reverse=True)
-
-    # Return all users with their data
-    return sorted_user_metric
+async def calculate_alltime_stats(db, user_id):
+    query = text("""
+        SELECT 
+            SUM(a_words) AS total_words_day,
+            SUM(a_decks_full) AS total_decks_full_day,
+            SUM(a_decks_part) AS total_decks_part_day,
+            COUNT(*) AS total_games_day
+        FROM games
+        WHERE a_user = :user_id;
+    """)
+    result = await db.execute(query, {'user_id': user_id})
+    return list(result.fetchone())
 
 
-def get_top_all_for_day():
-    try:
-        metric = lambda x: x[datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)]["words_learned"]
-        return get_top_all(metric)
-    except:
-        return []
+async def calculate_daily_rating(db):
+    query = text("""
+        SELECT g.a_user as user_id, u.u_username AS user_name, SUM(g.a_words) AS total_words
+        FROM games g
+        JOIN users u ON g.a_user = u.u_id
+        WHERE g.a_date = CURRENT_DATE
+        GROUP BY u.u_username, g.a_user
+        ORDER BY total_words DESC;
+    """)
+    result = await db.execute(query)
+
+    rating = []
+    for row in result:
+        user_id, username, words_learned = row
+        rating.append({'user_id': str(user_id), 'username': username, 'words_learned': int(words_learned)})
+
+    return rating
 
 
-def get_top_all_for_week():
-    metric = lambda x: sum(
-        value["words_learned"] for date, value in x.items() if date >= datetime.today() - timedelta(days=7))
-    return get_top_all(metric)
+async def calculate_weekly_rating(db):
+    query = text("""
+        SELECT g.a_user as user_id, u.u_username AS user_name, SUM(g.a_words) AS total_words
+        FROM games g
+        JOIN users u ON g.a_user = u.u_id
+        WHERE CURRENT_DATE - INTERVAL '7 days' <= g.a_date AND g.a_date <= CURRENT_DATE
+        GROUP BY u.u_username, g.a_user
+        ORDER BY total_words DESC;
+    """)
+    result = await db.execute(query)
+
+    rating = []
+    for row in result:
+        user_id, username, words_learned = row
+        rating.append({'user_id': str(user_id), 'username': username, 'words_learned': int(words_learned)})
+
+    return rating
 
 
-def get_top_all_for_total():
-    metric = lambda x: sum(value["words_learned"] for value in x.values())
-    return get_top_all(metric)
+async def calculate_alltime_rating(db):
+    query = text("""
+        SELECT g.a_user as user_id, u.u_username AS user_name, SUM(g.a_words) AS total_words
+        FROM games g
+        JOIN users u ON g.a_user = u.u_id
+        GROUP BY u.u_username, g.a_user
+        ORDER BY total_words DESC;
+    """)
+    result = await db.execute(query)
 
+    rating = []
+    for row in result:
+        user_id, username, words_learned = row
+        rating.append({'user_id': str(user_id), 'username': username, 'words_learned': int(words_learned)})
 
-def get_user_rank_for_day(user_id):
-    top_all_today = get_top_all_for_day()
-    user_rank = [rank + 1 for rank, (rank_user_id, _) in enumerate(top_all_today) if rank_user_id == user_id]
-    return user_rank[0] if user_rank else None
-
-
-def get_user_rank_for_week(user_id):
-    top_all_weekly = get_top_all_for_week()
-    user_rank = [rank + 1 for rank, (rank_user_id, _) in enumerate(top_all_weekly) if rank_user_id == user_id]
-    return user_rank[0] if user_rank else None
-
-
-def get_user_rank_for_total(user_id):
-    top_all_total = get_top_all_for_total()
-    user_rank = [rank + 1 for rank, (rank_user_id, _) in enumerate(top_all_total) if rank_user_id == user_id]
-    return user_rank[0] if user_rank else None
+    return rating

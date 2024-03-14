@@ -745,6 +745,7 @@ async def get_accounts(user_id: str = Depends(authentification.get_current_user)
     return JSONResponse(content=users_accounts)
 '''
 
+
 @router_statistics.post("")
 async def new_game_results(request_body: GameResults, user_id: str = Depends(authentification.get_current_user)):
     """
@@ -754,8 +755,8 @@ async def new_game_results(request_body: GameResults, user_id: str = Depends(aut
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
-    db_functions.update_achievements(user_id, request_body.words_learned, request_body.decks_learned_fully,
-                                     request_body.decks_learned_partly)
+    await db_functions.update_achievements(db, user_id, request_body.words_learned, request_body.decks_learned_fully,
+                                           request_body.decks_learned_partly)
 
     return JSONResponse(content={"message": "Updated user's achievements successfully"})
 
@@ -769,12 +770,12 @@ async def statistics_for_today(user_id: str = Depends(authentification.get_curre
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
-    total_words, fully_learned_decks, partly_learned_decks, total_games = db_functions.get_results_for_today(user_id)
-    ranking = db_functions.get_user_rank_for_day(user_id)
-
+    stats = await db_functions.calculate_daily_stats(db, user_id)
+    total_words, fully_learned_decks, partly_learned_decks, games = [param if param else 0 for param in stats]
+    ranking = 'calculate later'
     return JSONResponse(
-        content={"total_words": total_words, "ranking": ranking, "fully_learned_decks": fully_learned_decks,
-                 "partly_learned_decks": partly_learned_decks, "games": total_games})
+        content={"total_words": int(total_words), "ranking": ranking, "fully_learned_decks": int(fully_learned_decks),
+                 "partly_learned_decks": int(partly_learned_decks), "games": games})
 
 
 @router_statistics.get("/for_week")
@@ -786,31 +787,29 @@ async def statistics_for_week(user_id: str = Depends(authentification.get_curren
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
-    total_words, fully_learned_decks, partly_learned_decks, total_games = db_functions.get_weekly_results(user_id)
-
-    ranking = db_functions.get_user_rank_for_week(user_id)
-
+    stats = await db_functions.calculate_weekly_stats(db, user_id)
+    total_words, fully_learned_decks, partly_learned_decks, games = [param if param else 0 for param in stats]
+    ranking = 'calculate later'
     return JSONResponse(
-        content={"total_words": total_words, "ranking": ranking, "fully_learned_decks": fully_learned_decks,
-                 "partly_learned_decks": partly_learned_decks, "games": total_games})
+        content={"total_words": int(total_words), "ranking": ranking, "fully_learned_decks": int(fully_learned_decks),
+                 "partly_learned_decks": int(partly_learned_decks), "games": games})
 
 
 @router_statistics.get("/for_alltime")
-async def statistics_alltime(user_id: str = Depends(authentification.get_current_user)):
+async def statistics_for_alltime(user_id: str = Depends(authentification.get_current_user)):
     """
-    Считает и отправляет статистику успехов пользователя за всё время
+    Считает и отправляет статистику успехов пользователя за сегодня
     """
 
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
-    total_words, fully_learned_decks, partly_learned_decks, total_games = db_functions.get_total_results(user_id)
-    ranking = db_functions.get_user_rank_for_total(user_id)
-
+    stats = await db_functions.calculate_alltime_stats(db, user_id)
+    total_words, fully_learned_decks, partly_learned_decks, games = [param if param else 0 for param in stats]
+    ranking = 'calculate later'
     return JSONResponse(
-        content={"total_words": total_words, "ranking": ranking, "fully_learned_decks": fully_learned_decks,
-                 "partly_learned_decks": partly_learned_decks, "games": total_games})
-
+        content={"total_words": int(total_words), "ranking": ranking, "fully_learned_decks": int(fully_learned_decks),
+                 "partly_learned_decks": int(partly_learned_decks), "games": games})
 
 @router_rankings.get("/for_today")
 async def rankings_today(user_id: str = Depends(authentification.get_current_user)):
@@ -821,13 +820,9 @@ async def rankings_today(user_id: str = Depends(authentification.get_current_use
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
-    content = []  # упорядоченный список
-    top_all_today = db_functions.get_top_all_for_day()
-    for user_id, words_learned in top_all_today:
-        user = await db_functions.get_userdata_by_id(db, user_id)
-        content.append({"username": user.u_username, "words learned": words_learned})
+    top_all_today = await db_functions.calculate_daily_rating(db)
 
-    return JSONResponse(content=content)
+    return JSONResponse(content=top_all_today)
 
 
 @router_rankings.get("/for_week")
@@ -839,13 +834,9 @@ async def rankings_week(user_id: str = Depends(authentification.get_current_user
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
-    content = []  # упорядоченный список
-    top_all_week = db_functions.get_top_all_for_week()
-    for user_id, words_learned in top_all_week:
-        user = await db_functions.get_userdata_by_id(db, user_id)
-        content.append({"username": user.u_username, "words learned": words_learned})
+    top_all_week = await db_functions.calculate_weekly_rating(db)
 
-    return JSONResponse(content=content)
+    return JSONResponse(content=top_all_week)
 
 
 @router_rankings.get("/for_alltime")
@@ -857,13 +848,9 @@ async def rankings_week(user_id: str = Depends(authentification.get_current_user
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
-    content = []  # упорядоченный список
-    top_all_total = db_functions.get_top_all_for_total()
-    for user_id, words_learned in top_all_total:
-        user = await db_functions.get_userdata_by_id(db, user_id)
-        content.append({"username": user.u_username, "words learned": words_learned})
+    top_all_total = await db_functions.calculate_alltime_rating(db)
 
-    return JSONResponse(content=content)
+    return JSONResponse(content=top_all_total)
 
 
 app.include_router(router_profile, prefix="/profile", tags=["Profile"])

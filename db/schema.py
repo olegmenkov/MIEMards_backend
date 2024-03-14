@@ -23,16 +23,14 @@ class decks(Base):
     d_description = Column(String(512))
 
 
-class Achievements(Base):
-    __tablename__ = 'achievements'
+class Games(Base):
+    __tablename__ = 'games'
     a_id = Column(UUID(as_uuid=True), primary_key=True)
-    a_user_creator = Column(UUID(as_uuid=True))
+    a_user = Column(UUID(as_uuid=True))
     a_date = Column(DateTime)
     a_words = Column(BigInteger)
     a_decks_full = Column(BigInteger)
     a_decks_part = Column(BigInteger)
-    a_games = Column(BigInteger)
-
 
 class Users(Base):
     __tablename__ = 'users'
@@ -59,14 +57,6 @@ class Posts(Base):
     p_text = Column(String(512))
 
 
-class Groups(Base):
-    __tablename__ = 'groups'
-    g_id = Column(UUID(as_uuid=True), primary_key=True)
-    g_name = Column(String(128))
-    g_admin_id = Column(UUID(as_uuid=True))
-    g_users = Column(ARRAY(String))
-
-
 class BankCards(Base):
     __tablename__ = 'bankcards'
 
@@ -76,10 +66,3 @@ class BankCards(Base):
     bc_exp_date = Column(LargeBinary)
     bc_cvv = Column(LargeBinary)
 
-
-class SocialMediaAccounts(Base):
-    __tablename__ = 'socialmediaaccounts'
-    sma_id = Column(UUID(as_uuid=True), primary_key=True)
-    sma_user_id = Column(UUID(as_uuid=True))
-    ababa = Column(String(128))
-    obobo = Column(String(128))
