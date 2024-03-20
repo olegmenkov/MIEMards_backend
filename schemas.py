@@ -72,6 +72,7 @@ class GetDecksCards(BaseModel):
 
 class InterestData(BaseModel):
     name: str
+    description: str
 
 
 class ID(BaseModel):
