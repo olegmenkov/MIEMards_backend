@@ -1,6 +1,6 @@
 import authentification
 import db
-import db.db_functions
+from db.db_functions import bank_cards, cards, decks, interests, posts, profile, rankings, statistics
 from db.db_class import Database
 import pytest
 
@@ -34,7 +34,7 @@ async def test_login_success(database, client):
     user_id = authentification.get_current_user(access_token)
 
     # Проверяем, что в БД добавилась та же информация, что мы отправили
-    user_data_in_db = await db.db_functions.get_userdata_by_id(await database, user_id)
+    user_data_in_db = await profile.get_data(await database, user_id)
     user_data_input.pop("password")
     assert user_data_input == user_data_in_db
 
@@ -53,7 +53,7 @@ async def test_login_user_not_existing(client, database):
     password = "notexistingpasswd"
 
     # проверяем, что таких пользователей правда нет в БД
-    assert not await db.db_functions.find_user_by_login_data(await database, email, password)
+    assert not await profile.find_by_login(await database, email, password)
 
     # проверяем, что приложение вернёт ошибку при попытке залогиниться под этим пользователем
     response = client.post("/profile/login", json={"email": email, "password": email})
@@ -107,7 +107,7 @@ async def test_create_deck(client, database):
     # Проверим, что колода добавилась в том виде, в котором мы её добавили
     deck_id = response.json()["deck_id"]
     user_id = authentification.get_current_user(access_token)
-    deck_data_from_db = await db.db_functions.get_deck_by_id(await database, deck_id)
+    deck_data_from_db = await decks.get(await database, deck_id)
     assert deck_data == deck_data_from_db
 
 
@@ -163,7 +163,7 @@ async def test_delete_deck(database, client):
     # Добавляем колоду и проверяем по ID, что она добавилась
     response = client.post("/decks", json={'name': 'MyDeck', 'description': 'Description of MyDeck'}, headers=headers)
     deck_id = response.json()["deck_id"]
-    deck_data_from_db = await db.db_functions.get_deck_by_id(await database, deck_id)
+    deck_data_from_db = await decks.get(await database, deck_id)
     assert deck_data_from_db
 
     # Теперь удалим и проверим, что она правда удалилась
@@ -193,7 +193,7 @@ async def test_create_card(database, client):
     assert card_id
 
     # Проверим, что она появилась в БД с этим айди и с этими данными
-    card_data_from_db = await db.db_functions.get_card_by_id(await database, card_id)
+    card_data_from_db = await cards.get(await database, card_id)
     card_data.pop("deck_id")
     assert card_data == card_data_from_db
 
@@ -221,7 +221,7 @@ async def test_edit_card(database, client):
     assert response.status_code == 200
 
     # Проверим, что данные об этой карте в БД поменялись
-    card_data_from_db = await db.db_functions.get_card_by_id(await database, card_id)
+    card_data_from_db = await cards.get(await database, card_id)
     new_card_data.pop("deck_id")
     assert card_data_from_db == new_card_data
 
@@ -277,7 +277,7 @@ async def test_add_interest(database, client):
     assert interest_id
 
     # Проверяем, что в БД он появился с правильными данными
-    interest_data_from_db = await db.db_functions.get_interest(await database, interest_id)
+    interest_data_from_db = await interests.get(await database, interest_id)
     assert interest_data_from_db == interest_data
 
 
@@ -341,7 +341,7 @@ async def test_edit_interest(database, client):
     response = client.patch(f"/interests?interest_id={interest_id}",
                             json=new_interest_data, headers=headers)
     assert response.status_code == 200
-    interest_data_from_db = await db.db_functions.get_interest(await database, interest_id)
+    interest_data_from_db = await interests.get(await database, interest_id)
     assert interest_data_from_db == new_interest_data
 
 
@@ -368,7 +368,7 @@ async def test_add_post(database, client):
     assert response.status_code == 200
     post_id = response.json()["post_id"]
     assert post_id
-    post_data_from_db = await db.db_functions.get_post(await database, post_id)
+    post_data_from_db = await posts.get(await database, post_id)
     assert post_data_from_db == post_data_input
 
 
@@ -394,7 +394,7 @@ async def test_delete_post(database, client):
     post_id = client.post("/posts", json=post_data_input, headers=headers).json()["post_id"]
 
     # Удалим его из БД и проверим, что его там правда больше нет
-    await db.db_functions.delete_post(await database, post_id)
+    await posts.delete(await database, post_id)
     response = client.get(f"/posts/get_post_by_id/?post_id={post_id}", headers=headers)
     assert response.status_code == 404
     assert response.json() == {'detail': 'This post is not found'}
@@ -427,168 +427,7 @@ def test_get_users_posts(client):
     assert post_data_input1["text"] == db_data[post_id1]["text"]
     assert post_data_input2["text"] == db_data[post_id2]["text"]
 
-'''
-@pytest.mark.asyncio
-async def test_add_group(database, client):
-    # Регистрируемся
-    user_data_input = {"username": "Petya", "password": "12345", "email": "petya@example.com",
-                       "phone": "89109836725", "country": "Russia"}
-    client.post("/profile/register", json=user_data_input)
 
-    # Логинимся под этим новым пользователем, получаем токен, из которого будем брать ID
-    access_token = client.post("/profile/login", json={"email": "petya@example.com", "password": "12345"}).json()[
-        'access_token']
-    headers = {
-        'Authorization': f'Bearer {access_token}',
-        'Content-Type': 'application/json',
-    }
-
-    # Добавим новую группу
-    group_data_input = {"name": "BIV201", "users": ["Darya", "Kirill", "Alexander", "Oleg"]}
-    response = client.post('/groups', json=group_data_input, headers=headers)
-    assert response.status_code == 200
-    group_id = response.json()['group_id']
-    assert group_id
-
-    # Проверим, что она правильно добавилась
-    group_data_from_db = await db.db_functions.get_group(await database, group_id)
-    group_data_from_db.pop("admin_id")
-    assert group_data_input == group_data_from_db
-
-
-@pytest.mark.asyncio
-async def test_edit_group(database, client):
-    # Регистрируемся
-    user_data_input = {"username": "Petya", "password": "12345", "email": "petya@example.com",
-                       "phone": "89109836725", "country": "Russia"}
-    client.post("/profile/register", json=user_data_input)
-
-    # Логинимся под этим новым пользователем, получаем токен, из которого будем брать ID
-    access_token = client.post("/profile/login", json={"email": "petya@example.com", "password": "12345"}).json()[
-        'access_token']
-    headers = {
-        'Authorization': f'Bearer {access_token}',
-        'Content-Type': 'application/json',
-    }
-
-    # Добавим новую группу
-    old_group_data_input = {"name": "BIV201", "users": ["Darya", "Kirill", "Alexander", "Oleg"]}
-    group_id = client.post('/groups', json=old_group_data_input, headers=headers).json()['group_id']
-
-    # Отредактируем её и проверим, что в БД данные изменились
-    new_group_data_input = old_group_data_input
-    new_group_data_input["name"] = "БИВ201 - MIEMards"
-    response = client.patch(f"/groups?group_id={group_id}", json=new_group_data_input, headers=headers)
-    assert response.status_code == 200
-
-    group_data_from_db = await db.db_functions.get_group(await database, group_id)
-    group_data_from_db.pop("admin_id")
-    assert group_data_from_db == new_group_data_input
-
-
-def test_delete_group( client):
-    #  логинимся
-    access_token = client.post("/profile/login", json={"email": "user@example.com", "password": "string"}).json()[
-        'access_token']
-    headers = {'Authorization': f'Bearer {access_token}', 'Content-Type': 'application/json'}
-
-    # Добавим новую группу
-    old_group_data_input = {"name": "BIV201", "users": ["Darya", "Kirill", "Alexander", "Oleg"]}
-    group_id = client.post('/groups', json=old_group_data_input, headers=headers).json()['group_id']
-
-    # Удалим группу
-    client.delete(f'/groups/?group_id={group_id}', headers=headers)
-
-    # Проверим, что она правда удалилась
-    response = client.get(f"/groups/get_group_by_id/?group_id={group_id}", headers=headers)
-    assert response.status_code == 404
-    assert response.json() == {'detail': 'This group is not found'}
-
-
-@pytest.mark.asyncio
-async def test_add_acc(database, client):
-    # Регистрируемся
-    user_data_input = {"username": "Petya", "password": "12345", "email": "petya@example.com",
-                       "phone": "89109836725", "country": "Russia"}
-    client.post("/profile/register", json=user_data_input)
-
-    # Логинимся под этим новым пользователем, получаем токен, из которого будем брать ID
-    access_token = client.post("/profile/login", json={"email": "petya@example.com", "password": "12345"}).json()[
-        'access_token']
-    headers = {
-        'Authorization': f'Bearer {access_token}',
-        'Content-Type': 'application/json',
-    }
-
-    # Добавим новый аккаунт
-    acc_data_input = {"type": "VK", "link": "vk.com/id37364638"}
-    response = client.post('/social_accounts', json=acc_data_input, headers=headers)
-    assert response.status_code == 200
-    account_id = response.json()['account_id']
-    assert account_id
-
-    # Проверим, что он правильно добавился
-    account_data_from_db = await db.db_functions.get_account(await database, account_id)
-    assert account_data_from_db == acc_data_input
-
-
-def test_delete_acc(client):
-    # Регистрируемся
-    user_data_input = {"username": "Petya", "password": "12345", "email": "petya@example.com",
-                       "phone": "89109836725", "country": "Russia"}
-    response = client.post("/profile/register", json=user_data_input)
-
-    # Логинимся под этим новым пользователем, получаем токен, из которого будем брать ID
-    access_token = client.post("/profile/login", json={"email": "petya@example.com", "password": "12345"}).json()[
-        'access_token']
-    user_id = authentification.get_current_user(access_token)
-    headers = {
-        'Authorization': f'Bearer {access_token}',
-        'Content-Type': 'application/json',
-    }
-
-    # Добавим новый аккаунт
-    acc_data_input = {"type": "VK", "link": "vk.com/id37364638"}
-    account_id = client.post('/social_accounts', json=acc_data_input, headers=headers).json()['account_id']
-
-    # Удалим аккаунт
-    response = client.delete(f'/social_accounts/?account_id={account_id}', headers=headers)
-    assert response.status_code == 200
-
-    # Проверим, что он правда удалился
-    response = client.get(f"/social_accounts/get_account_by_id/?account_id={account_id}", headers=headers)
-    assert response.status_code == 404
-    assert response.json() == {'detail': 'This account is not found'}
-
-
-def test_get_accs(client):
-    # Регистрируемся
-    user_data_input = {"username": "Petya", "password": "12345", "email": "petya@example.com",
-                       "phone": "89109836725", "country": "Russia"}
-    client.post("/profile/register", json=user_data_input)
-
-    # Логинимся под этим новым пользователем, получаем токен, из которого будем брать ID
-    access_token = client.post("/profile/login", json={"email": "petya@example.com", "password": "12345"}).json()[
-        'access_token']
-    headers = {
-        'Authorization': f'Bearer {access_token}',
-        'Content-Type': 'application/json',
-    }
-    user_id = authentification.get_current_user(access_token)
-
-    # Добавим новый аккаунт
-    acc_data1 = {"type": "VK", "link": "vk.com/user111"}
-    account_id1 = client.post('/social_accounts', json=acc_data1, headers=headers).json()['account_id']
-    acc_data2 = {"type": "TELEGRAM", "link": "t.me/user222"}
-    account_id2 = client.post('/social_accounts', json=acc_data2, headers=headers).json()['account_id']
-
-    response = client.get("/social_accounts/show_accounts_of_user", headers=headers)
-    assert response.status_code == 200
-    accounts_data_from_response = response.json()
-    assert accounts_data_from_response[account_id1] == acc_data1
-    assert accounts_data_from_response[account_id2] == acc_data2
-
-'''
 @pytest.mark.asyncio
 async def test_add_bank_card(database, client):
     # Регистрируемся
@@ -613,7 +452,7 @@ async def test_add_bank_card(database, client):
     assert response.status_code == 200
     bank_card_id = response.json()["bank_card_id"]
     # Проверим, что она появилась в БД с этим айди и с этими данными
-    bank_card_data_from_db = await db.db_functions.get_bank_card(await database, bank_card_id)
+    bank_card_data_from_db = await bank_cards.get(await database, bank_card_id)
 
     assert bank_card_data["number"][-4:] == bank_card_data_from_db["number"]
 
@@ -644,7 +483,7 @@ async def test_edit_bank_card(database, client):
     bank_card_data = {"number": new_number, "exp_date": "09/25", "cvv": "736"}
     client.patch(f"/bank_cards?bank_card_id={bank_card_id}", json=bank_card_data, headers=headers).json()
 
-    bank_card_data_from_db = await db.db_functions.get_bank_card(await database, bank_card_id)
+    bank_card_data_from_db = await bank_cards.get(await database, bank_card_id)
     assert bank_card_data["number"][-4:] == bank_card_data_from_db["number"]
 
 
@@ -668,7 +507,7 @@ async def test_delete_bank_card(database, client):
     bank_card_id = client.post("/bank_cards", json=bank_card_data, headers=headers).json()["bank_card_id"]
 
     # Удалим её и проверим, что она удалена
-    await db.db_functions.delete_bank_card(await database, bank_card_id)
+    await bank_cards.delete(await database, bank_card_id)
     response = client.get(f"/bank_cards/get_bank_card_by_id/?bank_card_id={bank_card_id}", headers=headers)
     assert response.status_code == 404
     assert response.json() == {'detail': 'This card is not found'}

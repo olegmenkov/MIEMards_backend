@@ -1,7 +1,7 @@
 from fastapi import HTTPException, Depends, APIRouter
 from fastapi.responses import JSONResponse
 
-import db.db_functions as db_functions
+from db.db_functions import decks
 from db.db_class import Database
 from database_config import HOST, PORT, USERNAME, PASSWORD, DATABASE
 
@@ -26,7 +26,7 @@ async def create_deck(deck_data: DeckData, user_id: str = Depends(authentificati
         raise HTTPException(status_code=404, detail="User not found")
 
     # Вызываем функцию для добавления колоды в базу данных
-    deck_id = await db_functions.add_deck(db, deck_data.name, user_id, deck_data.description)
+    deck_id = await decks.add(db, deck_data.name, user_id, deck_data.description)
 
     return JSONResponse(content={"deck_id": deck_id})
 
@@ -40,7 +40,7 @@ async def get_deck(deck_id: str, user_id: str = Depends(authentification.get_cur
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
-    deck_info = await db_functions.get_deck_by_id(db, deck_id)
+    deck_info = await decks.get(db, deck_id)
     return JSONResponse(content=deck_info)
 
 
@@ -59,12 +59,11 @@ async def edit_deck(request_body: DeckData, deck_id: str, user_id: str = Depends
             raise HTTPException(status_code=422, detail=f"Invalid field: {field}")
 
         if value is not None:
-            await db_functions.edit_deck_in_db(db, deck_id, field, value)
+            await decks.edit(db, deck_id, field, value)
 
     return JSONResponse(content={"message": "Deck edited successfully"})
 
 
-# Эндпоинт для удаления колоды
 @router.delete("")
 async def delete_deck(deck_id: str, user_id: str = Depends(authentification.get_current_user)):
     """
@@ -74,7 +73,7 @@ async def delete_deck(deck_id: str, user_id: str = Depends(authentification.get_
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
-    await db_functions.delete_deck_from_db(db, deck_id)
+    await decks.delete(db, deck_id)
 
     return JSONResponse(content={"message": "Deck deleted successfully"})
 
@@ -97,7 +96,7 @@ async def get_decks(user_id: str = Depends(authentification.get_current_user)):
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
-    users_decks = await db_functions.get_users_decks(db, user_id)
+    users_decks = await decks.get_all(db, user_id)
 
     return JSONResponse(content=users_decks)
 
@@ -114,4 +113,3 @@ async def generate_card(deck_id: str, user_id: str = Depends(authentification.ge
     ai.generate_card_recommendation.generate_card_recommendation(deck_id)
 
     return JSONResponse(content={'message': 'Success!'})
-

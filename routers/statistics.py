@@ -1,7 +1,7 @@
 from fastapi import HTTPException, Depends, APIRouter
 from fastapi.responses import JSONResponse
 
-import db.db_functions as db_functions
+from db.db_functions import statistics, rankings
 from db.db_class import Database
 from database_config import HOST, PORT, USERNAME, PASSWORD, DATABASE
 
@@ -20,6 +20,7 @@ def find_rank(top, user_id):
             ranking = place_from_0 + 1
     return ranking
 
+
 @router.post("")
 async def new_game_results(request_body: GameResults, user_id: str = Depends(authentification.get_current_user)):
     """
@@ -29,8 +30,8 @@ async def new_game_results(request_body: GameResults, user_id: str = Depends(aut
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
-    await db_functions.update_achievements(db, user_id, request_body.words_learned, request_body.decks_learned_fully,
-                                           request_body.decks_learned_partly)
+    await statistics.update(db, user_id, request_body.words_learned, request_body.decks_learned_fully,
+                            request_body.decks_learned_partly)
 
     return JSONResponse(content={"message": "Updated user's achievements successfully"})
 
@@ -45,11 +46,11 @@ async def statistics_for_today(user_id: str = Depends(authentification.get_curre
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
-    stats = await db_functions.calculate_daily_stats(db, user_id)
+    stats = await statistics.calculate_daily(db, user_id)
     total_words, fully_learned_decks, partly_learned_decks, games = [param if param else 0 for param in stats]
 
-    top_today = await db_functions.calculate_daily_rating(db)
-    ranking = find_rank(top_today, user_id)
+    top_today = await rankings.calculate_daily(db)
+    ranking = find_rank(top_today, user_id) if top_today else None
 
     return JSONResponse(
         content={"total_words": int(total_words), "ranking": ranking, "fully_learned_decks": int(fully_learned_decks),
@@ -66,11 +67,11 @@ async def statistics_for_week(user_id: str = Depends(authentification.get_curren
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
-    stats = await db_functions.calculate_weekly_stats(db, user_id)
+    stats = await statistics.calculate_weekly(db, user_id)
     total_words, fully_learned_decks, partly_learned_decks, games = [param if param else 0 for param in stats]
 
-    top_week = await db_functions.calculate_weekly_rating(db)
-    ranking = find_rank(top_week, user_id)
+    top_week = await rankings.calculate_weekly(db)
+    ranking = find_rank(top_week, user_id) if top_week else None
 
     return JSONResponse(
         content={"total_words": int(total_words), "ranking": ranking, "fully_learned_decks": int(fully_learned_decks),
@@ -87,11 +88,11 @@ async def statistics_for_alltime(user_id: str = Depends(authentification.get_cur
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
-    stats = await db_functions.calculate_alltime_stats(db, user_id)
+    stats = await statistics.calculate_alltime(db, user_id)
     total_words, fully_learned_decks, partly_learned_decks, games = [param if param else 0 for param in stats]
 
-    top_alltime = await db_functions.calculate_alltime_rating(db)
-    ranking = find_rank(top_alltime, user_id)
+    top_alltime = await rankings.calculate_alltime(db)
+    ranking = find_rank(top_alltime, user_id) if top_alltime else None
 
     return JSONResponse(
         content={"total_words": int(total_words), "ranking": ranking, "fully_learned_decks": int(fully_learned_decks),

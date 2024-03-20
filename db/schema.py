@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, DateTime, BigInteger, ARRAY, LargeBinary
+from sqlalchemy import Column, String, DateTime, BigInteger, LargeBinary
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -15,7 +15,7 @@ class Cards(Base):
     c_explanation = Column(String(128))
 
 
-class decks(Base):
+class Decks(Base):
     __tablename__ = 'decks'
     d_id = Column(UUID(as_uuid=True), primary_key=True)
     d_creator = Column(UUID(as_uuid=True))
@@ -31,6 +31,7 @@ class Games(Base):
     a_words = Column(BigInteger)
     a_decks_full = Column(BigInteger)
     a_decks_part = Column(BigInteger)
+
 
 class Users(Base):
     __tablename__ = 'users'
@@ -66,4 +67,3 @@ class BankCards(Base):
     bc_number = Column(LargeBinary)
     bc_exp_date = Column(LargeBinary)
     bc_cvv = Column(LargeBinary)
-
