@@ -1,20 +1,21 @@
 from fastapi import HTTPException, Depends, APIRouter
 from fastapi.responses import JSONResponse
-
-from db.db_functions import cards
-from db.db_class import Database
-from database_config import HOST, PORT, USERNAME, PASSWORD, DATABASE
-
-import authentification
-from schemas import *
+from transformers import MarianMTModel, MarianTokenizer
 
 import ai
+import authentification
 from ai.generate_image import generate_image
 from ai.generate_translation import generate_translation
-
+from database_config import HOST, PORT, USERNAME, PASSWORD, DATABASE
+from db.db_class import Database
+from db.db_functions import cards
+from schemas import *
 
 db = Database(HOST, PORT, USERNAME, PASSWORD, DATABASE)
 router = APIRouter()
+model_name = 'Helsinki-NLP/opus-mt-en-ru'
+tokenizer = MarianTokenizer.from_pretrained(model_name)
+model = MarianMTModel.from_pretrained(model_name)
 
 
 @router.post("")
@@ -110,9 +111,9 @@ async def generate_image(card_id: str, user_id: str = Depends(authentification.g
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
-    ai.generate_image.generate_image(card_id)
-
-    return JSONResponse(content={'message': 'Success!'})
+    card = await cards.get(db, card_id)
+    url = ai.generate_image.generate_image(card["english_word"])
+    return JSONResponse(content={'url': url})
 
 
 @router.get("/generate_translation")
@@ -123,7 +124,7 @@ async def generate_translation(card_id: str, user_id: str = Depends(authentifica
 
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
-
-    ai.generate_translation.generate_translation(card_id)
+    card = await cards.get(db, card_id)
+    ai.generate_translation.generate_translation(card['english_word'], tokenizer, model)
 
     return JSONResponse(content={'message': 'Success!'})

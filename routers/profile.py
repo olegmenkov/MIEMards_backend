@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 import ai
 from ai.generate_deck_recommendation import generate_deck_recommendation
 
-from db.db_functions import profile
+from db.db_functions import profile, interests
 import authentification
 from db.db_class import Database
 from schemas import *
@@ -109,7 +109,7 @@ async def generate_deck(user_id: str = Depends(authentification.get_current_user
 
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
-
-    ai.generate_deck_recommendation.generate_deck_recommendation(user_id)
-
-    return JSONResponse(content={'message': 'Success!'})
+    all_interests = await interests.get_all(db, user_id)
+    all_interests_names = [element['name'] for element in all_interests]
+    new_deck = ai.generate_deck_recommendation.generate_deck_recommendation(all_interests_names)
+    return JSONResponse(content={"new_deck": new_deck})

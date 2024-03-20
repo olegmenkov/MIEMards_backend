@@ -11,8 +11,10 @@ python-dotenv==1.0.0
 httpx
 alembic
 asyncpg==0.29.0
-psycopg2
+psycopg2-binary
 pytest-asyncio
 trio
 cryptography==41.0.2
 sqlalchemy
+openai
+langchain

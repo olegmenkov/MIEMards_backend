@@ -1,7 +1,7 @@
 from fastapi import HTTPException, Depends, APIRouter
 from fastapi.responses import JSONResponse
 
-from db.db_functions import decks
+from db.db_functions import decks, cards
 from db.db_class import Database
 from database_config import HOST, PORT, USERNAME, PASSWORD, DATABASE
 
@@ -110,6 +110,7 @@ async def generate_card(deck_id: str, user_id: str = Depends(authentification.ge
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
-    ai.generate_card_recommendation.generate_card_recommendation(deck_id)
-
-    return JSONResponse(content={'message': 'Success!'})
+    all_cards = await cards.get_all(db, deck_id)
+    deck_words = [element['english_word'] for element in all_cards]
+    eng, ru = ai.generate_card_recommendation.generate_card_recommendation(deck_words)
+    return JSONResponse(content={'new_word_eng': eng, 'new_word_ru': ru})
