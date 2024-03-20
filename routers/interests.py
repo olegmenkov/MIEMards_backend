@@ -1,7 +1,7 @@
 from fastapi import HTTPException, Depends, APIRouter
 from fastapi.responses import JSONResponse
 
-import db.db_functions as db_functions
+from db.db_functions import interests
 from db.db_class import Database
 from database_config import HOST, PORT, USERNAME, PASSWORD, DATABASE
 
@@ -23,7 +23,7 @@ async def create_interest(request_body: InterestData, user_id: str = Depends(aut
         raise HTTPException(status_code=404, detail="User not found")
 
     # Вызываем функцию для добавления колоды в базу данных
-    interest_id = await db_functions.add_interest(db, user_id, request_body.name, request_body.description)
+    interest_id = await interests.add(db, user_id, request_body.name, request_body.description)
 
     return JSONResponse(content={"interest_id": interest_id})
 
@@ -37,7 +37,7 @@ async def get_interest(interest_id: str, user_id: str = Depends(authentification
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
-    interest_info = await db_functions.get_interest(db, interest_id)
+    interest_info = await interests.get(db, interest_id)
     return JSONResponse(content=interest_info)
 
 
@@ -57,7 +57,7 @@ async def edit_interest(request_body: InterestData, interest_id: str,
             raise HTTPException(status_code=422, detail=f"Invalid field: {field}")
 
         if value is not None:
-            await db_functions.edit_interest(db, interest_id, field, value)
+            await interests.edit(db, interest_id, field, value)
     return JSONResponse(content={"message": "Interest edited successfully"})
 
 
@@ -70,7 +70,7 @@ async def delete_interest(interest_id: str, user_id: str = Depends(authentificat
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
-    await db_functions.delete_interest(db, interest_id)
+    await interests.delete(db, interest_id)
 
     return JSONResponse(content={"message": "Interest deleted successfully"})
 
@@ -84,6 +84,6 @@ async def get_interests(user_id: str = Depends(authentification.get_current_user
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
-    users_interests = await db_functions.get_interests(db, user_id)
+    users_interests = await interests.get_all(db, user_id)
 
     return JSONResponse(content=users_interests)

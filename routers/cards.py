@@ -1,7 +1,7 @@
 from fastapi import HTTPException, Depends, APIRouter
 from fastapi.responses import JSONResponse
 
-import db.db_functions as db_functions
+from db.db_functions import cards
 from db.db_class import Database
 from database_config import HOST, PORT, USERNAME, PASSWORD, DATABASE
 
@@ -27,8 +27,8 @@ async def create_card(card_data: CardData, user_id: str = Depends(authentificati
         raise HTTPException(status_code=404, detail="User not found")
 
     # Вызываем функцию для добавления карты в базу данных
-    card_id = await db_functions.add_card(db, card_data.english_word, card_data.translation, card_data.explanation,
-                                          card_data.deck_id)
+    card_id = await cards.add(db, card_data.english_word, card_data.translation, card_data.explanation,
+                              card_data.deck_id)
     return JSONResponse(content={"card_id": card_id})
 
 
@@ -42,7 +42,7 @@ async def get_card(card_id: str, user_id: str = Depends(authentification.get_cur
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
-    deck_info = await db_functions.get_card_by_id(db, card_id)
+    deck_info = await cards.get(db, card_id)
     return JSONResponse(content=deck_info)
 
 
@@ -61,7 +61,7 @@ async def edit_card(card_id: str, request_body: CardData, user_id: str = Depends
             raise HTTPException(status_code=422, detail=f"Invalid field: {field}")
 
         if value is not None:
-            await db_functions.edit_card_in_db(db, card_id, field, value)
+            await cards.edit(db, card_id, field, value)
 
     return JSONResponse(content={"message": "Card edited successfully"})
 
@@ -75,7 +75,7 @@ async def delete_card(card_id: str, user_id: str = Depends(authentification.get_
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
-    await db_functions.delete_card_from_db(db, card_id)
+    await cards.delete(db, card_id)
     return JSONResponse(content={"message": "Card deleted successfully"})
 
 
@@ -97,8 +97,8 @@ async def get_cards(deck_id: str, user_id: str = Depends(authentification.get_cu
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
-    cards = await db_functions.get_decks_cards(db, deck_id)
-    return JSONResponse(content=cards)
+    users_cards = await cards.get_all(db, deck_id)
+    return JSONResponse(content=users_cards)
 
 
 @router.get("/generate_image")

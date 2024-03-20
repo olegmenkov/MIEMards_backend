@@ -1,7 +1,7 @@
 from fastapi import HTTPException, Depends, APIRouter
 from fastapi.responses import JSONResponse
 
-import db.db_functions as db_functions
+from db.db_functions import posts
 from db.db_class import Database
 from database_config import HOST, PORT, USERNAME, PASSWORD, DATABASE
 
@@ -23,7 +23,7 @@ async def create_post(request_body: PostData, user_id: str = Depends(authentific
         raise HTTPException(status_code=404, detail="User not found")
 
     # Вызываем функцию для добавления колоды в базу данных
-    post_id = await db_functions.add_post(db, user_id, request_body.text)
+    post_id = await posts.add(db, user_id, request_body.text)
 
     return JSONResponse(content={"post_id": post_id})
 
@@ -37,7 +37,7 @@ async def get_post(post_id: str, user_id: str = Depends(authentification.get_cur
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
-    post_info = await db_functions.get_post(db, post_id)
+    post_info = await posts.get(db, post_id)
     return JSONResponse(content=post_info)
 
 
@@ -56,7 +56,7 @@ async def edit_post(request_body: PostData, post_id: str, user_id: str = Depends
             raise HTTPException(status_code=422, detail=f"Invalid field: {field}")
 
         if value is not None:
-            await db_functions.edit_post(db, post_id, field, value)
+            await posts.edit(db, post_id, field, value)
     return JSONResponse(content={"message": "Post edited successfully"})
 
 
@@ -69,7 +69,7 @@ async def delete_post(post_id: str, user_id: str = Depends(authentification.get_
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
-    await db_functions.delete_post(db, post_id)
+    await posts.delete(db, post_id)
 
     return JSONResponse(content={"message": "post deleted successfully"})
 
@@ -83,6 +83,6 @@ async def get_posts(user_id: str = Depends(authentification.get_current_user)):
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
-    users_posts = await db_functions.get_posts(db, user_id)
+    users_posts = await posts.get_all(db, user_id)
 
     return JSONResponse(content=users_posts)

@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 import ai
 from ai.generate_deck_recommendation import generate_deck_recommendation
 
-import db.db_functions as db_functions
+from db.db_functions import profile
 import authentification
 from db.db_class import Database
 from schemas import *
@@ -18,13 +18,14 @@ db = Database(HOST, PORT, USERNAME, PASSWORD, DATABASE)
 
 router = APIRouter()
 
+
 @router.post("/register")
 async def register(request_body: UserInfo):
     """
     Регистрирует в БД нового пользователя со всеми полями, указанными при регистрации
     """
-    await db_functions.add_user_to_db(db, request_body.username, request_body.password, request_body.email,
-                                      request_body.phone, request_body.country)
+    await profile.add(db, request_body.username, request_body.password, request_body.email, request_body.phone,
+                      request_body.country)
     return JSONResponse(content={"message": "User registered successfully"})
 
 
@@ -34,7 +35,7 @@ async def login(request_body: LoginModel):
     Проверяет, существует ли пользователь с таким логином и паролем. Если да, возвращает токен для дальнейшего доступа
     """
 
-    found_user = await db_functions.find_user_by_login_data(db, request_body.email, request_body.password)
+    found_user = await profile.find_by_login(db, request_body.email, request_body.password)
     if not found_user:
         raise HTTPException(status_code=401, detail="Invalid email or password")
 
@@ -71,7 +72,7 @@ async def edit_profile(request_body: EditProfileModel, user_id: str = Depends(au
             raise HTTPException(status_code=422, detail=f"Invalid field: {field}")
 
         if value is not None:
-            await db_functions.edit_users_profile(db, user_id, field, value)
+            await profile.edit(db, user_id, field, value)
 
     return JSONResponse(content={"message": "Profile edited successfully"})
 
@@ -81,7 +82,7 @@ async def get_user_data(user_id: str = Depends(authentification.get_current_user
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
-    user_data = await db_functions.get_userdata_by_id(db, user_id)
+    user_data = await profile.get_data(db, user_id)
 
     return JSONResponse(content=user_data)
 
@@ -95,7 +96,7 @@ async def delete_profile(user_id: str = Depends(authentification.get_current_use
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
-    await db_functions.delete_user_from_db(db, user_id)
+    await profile.delete(db, user_id)
 
     return JSONResponse(content={"message": "Profile deleted successfully"})
 
@@ -112,4 +113,3 @@ async def generate_deck(user_id: str = Depends(authentification.get_current_user
     ai.generate_deck_recommendation.generate_deck_recommendation(user_id)
 
     return JSONResponse(content={'message': 'Success!'})
-

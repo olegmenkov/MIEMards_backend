@@ -1,12 +1,11 @@
 from fastapi import HTTPException, Depends, APIRouter
 from fastapi.responses import JSONResponse
 
-import db.db_functions as db_functions
+from db.db_functions import rankings
 from db.db_class import Database
 from database_config import HOST, PORT, USERNAME, PASSWORD, DATABASE
 
 import authentification
-from schemas import *
 
 
 db = Database(HOST, PORT, USERNAME, PASSWORD, DATABASE)
@@ -22,7 +21,7 @@ async def rankings_today(user_id: str = Depends(authentification.get_current_use
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
-    top_all_today = await db_functions.calculate_daily_rating(db)
+    top_all_today = await rankings.calculate_daily(db)
 
     return JSONResponse(content=top_all_today)
 
@@ -36,13 +35,13 @@ async def rankings_week(user_id: str = Depends(authentification.get_current_user
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
-    top_all_week = await db_functions.calculate_weekly_rating(db)
+    top_all_week = await rankings.calculate_weekly(db)
 
     return JSONResponse(content=top_all_week)
 
 
 @router.get("/for_alltime")
-async def rankings_week(user_id: str = Depends(authentification.get_current_user)):
+async def rankings_alltime(user_id: str = Depends(authentification.get_current_user)):
     """
     Считает и отправляет топ пользователей за всё время
     """
@@ -50,6 +49,6 @@ async def rankings_week(user_id: str = Depends(authentification.get_current_user
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
-    top_all_total = await db_functions.calculate_alltime_rating(db)
+    top_all_total = await rankings.calculate_alltime(db)
 
     return JSONResponse(content=top_all_total)
