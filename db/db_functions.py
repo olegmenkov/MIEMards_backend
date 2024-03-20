@@ -79,7 +79,7 @@ async def get_userdata_by_id(db, user_id):
         return {'username': username, 'email': email, 'phone': phone, 'country': country}
     else:
         raise HTTPException(status_code=404,
-                            detail='This deck is not found')
+                            detail='This user is not found')
 
 
 async def edit_users_profile(db, user_id, field_to_change: str, new_value: str):
@@ -523,7 +523,9 @@ async def calculate_daily_rating(db):
     rating = []
     for row in result:
         user_id, username, words_learned = row
-        rating.append({'user_id': str(user_id), 'username': username, 'words_learned': int(words_learned)})
+        data = await get_userdata_by_id(db, user_id)
+        country = data["country"]
+        rating.append({'user_id': str(user_id), 'username': username, 'country': country, 'words_learned': int(words_learned)})
 
     return rating
 
@@ -542,7 +544,10 @@ async def calculate_weekly_rating(db):
     rating = []
     for row in result:
         user_id, username, words_learned = row
-        rating.append({'user_id': str(user_id), 'username': username, 'words_learned': int(words_learned)})
+        data = await get_userdata_by_id(db, user_id)
+        country = data["country"]
+        rating.append(
+            {'user_id': str(user_id), 'username': username, 'country': country, 'words_learned': int(words_learned)})
 
     return rating
 
@@ -560,6 +565,9 @@ async def calculate_alltime_rating(db):
     rating = []
     for row in result:
         user_id, username, words_learned = row
-        rating.append({'user_id': str(user_id), 'username': username, 'words_learned': int(words_learned)})
+        data = await get_userdata_by_id(db, user_id)
+        country = data["country"]
+        rating.append(
+            {'user_id': str(user_id), 'username': username, 'country': country, 'words_learned': int(words_learned)})
 
     return rating
