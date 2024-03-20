@@ -23,7 +23,7 @@ async def create_interest(request_body: InterestData, user_id: str = Depends(aut
         raise HTTPException(status_code=404, detail="User not found")
 
     # Вызываем функцию для добавления колоды в базу данных
-    interest_id = await db_functions.add_interest(db, user_id, request_body.name)
+    interest_id = await db_functions.add_interest(db, user_id, request_body.name, request_body.description)
 
     return JSONResponse(content={"interest_id": interest_id})
 
@@ -70,7 +70,7 @@ async def delete_interest(interest_id: str, user_id: str = Depends(authentificat
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
-    await db_functions.delete_interest(user_id, interest_id)
+    await db_functions.delete_interest(db, interest_id)
 
     return JSONResponse(content={"message": "Interest deleted successfully"})
 

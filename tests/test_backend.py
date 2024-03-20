@@ -269,7 +269,7 @@ async def test_add_interest(database, client):
     }
 
     # Добавляем новый интерес
-    interest_data = {"name": "sport"}
+    interest_data = {"name": "sport", "description": "fitness and pilates"}
     response = client.post("/interests",
                            json=interest_data, headers=headers)
     assert response.status_code == 200
@@ -300,8 +300,9 @@ async def test_get_interest(client):
 
     # Добавляем новый интерес
     interest_name = "music"
+    description = "jazz and blues"
     response = client.post("/interests",
-                           json={"name": interest_name}, headers=headers)
+                           json={"name": interest_name, "description": description}, headers=headers)
     interest_id = response.json()['interest_id']
 
     # Теперь проверяем, что его можно получить -- получаем его по ID и проверяем корректную ли информация
@@ -329,7 +330,7 @@ async def test_edit_interest(database, client):
     }
 
     # Добавляем новый интерес
-    old_interest_data = {"name": "chess"}
+    old_interest_data = {"name": "chess", "description": "i love Kasparov and Alekhin"}
     response = client.post("/interests",
                            json=old_interest_data, headers=headers)
     interest_id = response.json()["interest_id"]
