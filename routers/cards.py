@@ -123,5 +123,5 @@ async def generate_translation(word: str, user_id: str = Depends(authentificatio
 
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
-    ai.generate_translation.generate_translation(word, tokenizer, model)
-    return JSONResponse(content={'message': 'Success!'})
+    res = ai.generate_translation.generate_translation(word, tokenizer, model)
+    return JSONResponse(content={'message': res})
