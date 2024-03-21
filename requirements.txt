@@ -18,3 +18,7 @@ cryptography==41.0.2
 sqlalchemy
 openai
 langchain
+transformers
+sentencepiece
+sacremoses
+sentencepiece

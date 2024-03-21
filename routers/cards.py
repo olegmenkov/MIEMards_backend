@@ -103,28 +103,24 @@ async def get_cards(deck_id: str, user_id: str = Depends(authentification.get_cu
 
 
 @router.get("/generate_image")
-async def generate_image(card_id: str, user_id: str = Depends(authentification.get_current_user)):
+async def generate_image(word: str, user_id: str = Depends(authentification.get_current_user)):
     """
     Генерирует изображение для данной карточки
     """
 
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
-
-    card = await cards.get(db, card_id)
-    url = ai.generate_image.generate_image(card["english_word"])
+    url = ai.generate_image.generate_image(word)
     return JSONResponse(content={'url': url})
 
 
 @router.get("/generate_translation")
-async def generate_translation(card_id: str, user_id: str = Depends(authentification.get_current_user)):
+async def generate_translation(word: str, user_id: str = Depends(authentification.get_current_user)):
     """
     Генерирует перевод для данной карточки
     """
 
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
-    card = await cards.get(db, card_id)
-    ai.generate_translation.generate_translation(card['english_word'], tokenizer, model)
-
+    ai.generate_translation.generate_translation(word, tokenizer, model)
     return JSONResponse(content={'message': 'Success!'})
