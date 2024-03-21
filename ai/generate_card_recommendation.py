@@ -23,4 +23,5 @@ def generate_card_recommendation(topic, existing_words):
         word_dict[english_word] = russian_word
 
     logger.info('Рекомендация карт сгенерирована!')
+    logger.debug(word_dict)
     return list(word_dict.keys())[0], list(word_dict.values())[0]
