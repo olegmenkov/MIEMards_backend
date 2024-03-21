@@ -110,9 +110,6 @@ async def generate_card(deck_id: str, user_id: str = Depends(authentification.ge
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
-    # mock
-    return JSONResponse(content={'card_id': "123"})
-
     all_cards = await cards.get_all(db, deck_id)
     deck_words = [element['english_word'] for element in all_cards]
     eng, ru = ai.generate_card_recommendation.generate_card_recommendation(deck_words)

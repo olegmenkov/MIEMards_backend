@@ -111,9 +111,6 @@ async def generate_image(word: str, user_id: str = Depends(authentification.get_
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
-    # mock
-    return JSONResponse(content={'url': "https://images-assets-ht.project1content.com/Fakehub/Tour/FakeTaxi/Categories/5da0a232d0d0e6.33516581.jpg"})
-
     url = ai.generate_image.generate_image(word)
     return JSONResponse(content={'url': url})
 

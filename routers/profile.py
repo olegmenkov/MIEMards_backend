@@ -109,9 +109,6 @@ async def generate_deck(word: str, user_id: str = Depends(authentification.get_c
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
-    # mock
-    return JSONResponse(content={'deck_id': "123"})
-
     new_deck = ai.generate_deck_recommendation.generate_deck_recommendation(word)
     deck_id = await decks.add(db, word, user_id, "")
     for k, v in new_deck.items():
