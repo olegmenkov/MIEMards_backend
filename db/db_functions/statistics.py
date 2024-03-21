@@ -11,7 +11,7 @@ async def update(db, user_id, words_learned, decks_learned_fully, decks_learned_
     today = datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)
 
     query = text("""INSERT INTO games (a_id, a_user, a_date, a_words, a_decks_full, a_decks_part) 
-    VALUES (:game_id, :user_id, :today, :words, :decks_full, :decks_part);""")
+    VALUES (:game_id, :user_id, CURRENT_DATE, :words, :decks_full, :decks_part);""")
 
     await db.execute(query,
                      {'game_id': game_id, 'user_id': user_id, 'today': today, 'words': words_learned,
