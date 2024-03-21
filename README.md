@@ -73,11 +73,12 @@ uvicorn main:app --reload
 2. Выполнить команду
 ```shell
 make test
-```
+```  
 
 ## Примеры использования
 
-Примеры использования проекта MIEMards вы можете найти в нашей [пользовательской документации](https://docs.google.com/document/d/11Q4lg1675mnOO6pmb2SldNC3Sfv87io6q4iJpIS47mw/edit)
+Примеры использования проекта MIEMards вы можете найти в нашей [пользовательской документации](https://docs.google.com/document/d/11Q4lg1675mnOO6pmb2SldNC3Sfv87io6q4iJpIS47mw/edit)  
+
 
 ## Ваш вклад
 
@@ -86,7 +87,8 @@ make test
 Затем нажмите на кнопку ```New issue```, опишите свою проблему и отправьте её. Мы постараемся оперативно вам помочь или исправить ошибку в нашем коде.
 ![New issue](https://github.com/olegmenkov/MIEMards_backend/assets/93485639/a6974d2e-4c4e-4441-baba-ec96d04be054)
 
-С прочими предложениями приглашаем вас обращаться в Telegram: [@olegmenkov](https://t.me/olegmenkov "Telegram")
+С прочими предложениями приглашаем вас обращаться в Telegram: [@olegmenkov](https://t.me/olegmenkov "Telegram")  
+
 
 ## Лицензия и авторство
 В списке ниже перечислены авторы данного проекта, их контакты и их сферы ответственности:
