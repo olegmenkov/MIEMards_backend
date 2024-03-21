@@ -5,7 +5,6 @@ from loguru import logger
 
 
 def generate_card_recommendation(topic, existing_words):
-    logger.info('Рекомендация карт сгенерирована!')
     system_prompt = "Based on the provided list of words, suggest a new word and its Russian translation that is contextually relevant to them."
     user_template = "Given these words in the card deck: {words}, and topic {topic} suggest a new relevant word and its Russian translation."
     words_string = ', '.join(existing_words)
@@ -23,4 +22,5 @@ def generate_card_recommendation(topic, existing_words):
         russian_word = suggested_word_pair[1].split(': ')[1].split(' ')[0]
         word_dict[english_word] = russian_word
 
+    logger.info('Рекомендация карт сгенерирована!')
     return list(word_dict.keys())[0], list(word_dict.values())[0]
