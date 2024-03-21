@@ -57,6 +57,7 @@ class Posts(Base):
     p_id = Column(UUID(as_uuid=True), primary_key=True)
     p_author_id = Column(UUID(as_uuid=True))
     p_text = Column(String(512))
+    p_date = Column(DateTime)
 
 
 class BankCards(Base):
