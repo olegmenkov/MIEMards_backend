@@ -4,15 +4,15 @@ from langchain_core.prompts import HumanMessagePromptTemplate, ChatPromptTemplat
 from loguru import logger
 
 
-def generate_card_recommendation(existing_words):
+def generate_card_recommendation(topic, existing_words):
     logger.info('Рекомендация карт сгенерирована!')
     system_prompt = "Based on the provided list of words, suggest a new word and its Russian translation that is contextually relevant to them."
-    user_template = "Given these words in the card deck: {words}, suggest a new relevant word and its Russian translation."
+    user_template = "Given these words in the card deck: {words}, and topic {topic} suggest a new relevant word and its Russian translation."
     words_string = ', '.join(existing_words)
     llm = ChatOpenAI(temperature=0, model="gpt-3.5-turbo-0125")
     chat_template = ChatPromptTemplate.from_messages([SystemMessage(content=system_prompt),
                                                       HumanMessagePromptTemplate.from_template(user_template)])
-    formatted_template = chat_template.format_messages(words=words_string)
+    formatted_template = chat_template.format_messages(words=words_string, topic=topic)
     message = llm.invoke(formatted_template).content.strip()
 
     suggested_word_pair = message.split('\n')

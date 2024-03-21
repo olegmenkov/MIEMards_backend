@@ -110,8 +110,9 @@ async def generate_card(deck_id: str, user_id: str = Depends(authentification.ge
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
+    deck = await decks.get(db, deck_id)
     all_cards = await cards.get_all(db, deck_id)
-    deck_words = [element['english_word'] for element in all_cards]
-    eng, ru = ai.generate_card_recommendation.generate_card_recommendation(deck_words)
+    deck_words = [element['english_word'] for element in all_cards.values()]
+    eng, ru = ai.generate_card_recommendation.generate_card_recommendation(deck['name'], deck_words)
     card_id = await cards.add(db, eng, ru, "", deck_id)
     return JSONResponse(content={'card_id': card_id})
