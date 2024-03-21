@@ -13,7 +13,7 @@ from schemas import *
 
 db = Database(HOST, PORT, USERNAME, PASSWORD, DATABASE)
 router = APIRouter()
-model_name = 'Helsinki-NLP/opus-mt-en-ru'
+model_name = 'Helsinki-NLP/opus-mt-ru-en'
 tokenizer = MarianTokenizer.from_pretrained(model_name)
 model = MarianMTModel.from_pretrained(model_name)
 
