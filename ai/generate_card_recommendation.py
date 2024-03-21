@@ -5,7 +5,9 @@ from loguru import logger
 
 
 def generate_card_recommendation(topic, existing_words):
-    system_prompt = """Based on the provided list of words and topic, suggest a new word and its Russian translation that is contextually relevant to them. Return 2 words with space
+    system_prompt = """Based on the provided list of words and topic, suggest a new word and its Russian translation that is contextually relevant to them.
+    You should avoid existing words while generating.
+    Return 2 words with space.
     Example 1:
     hammer молоток
     Example 2:
