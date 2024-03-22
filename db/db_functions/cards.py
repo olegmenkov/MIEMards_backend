@@ -59,7 +59,7 @@ async def delete(db, card_id):
 
 
 async def get_all(db, deck_id: str):
-    query = text("""SELECT c_id, c_english_word, c_translation, c_explanation FROM cards WHERE c_deck_id = :deck_id;""")
+    query = text("""SELECT c_id, c_english_word, c_translation, c_explanation, c_image FROM cards WHERE c_deck_id = :deck_id;""")
     result = await db.execute(query, {'deck_id': deck_id})
     cards = {}
 
