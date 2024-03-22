@@ -102,7 +102,7 @@ async def get_decks(user_id: str = Depends(authentification.get_current_user)):
 
 
 @router.get("/generate_card")
-async def generate_card(deck_id: str, user_id: str = Depends(authentification.get_current_user)):
+async def generate_card(word: str, deck_id: str, user_id: str = Depends(authentification.get_current_user)):
     """
     Генерирует карточку для данной колоды
     """
@@ -113,6 +113,6 @@ async def generate_card(deck_id: str, user_id: str = Depends(authentification.ge
     deck = await decks.get(db, deck_id)
     all_cards = await cards.get_all(db, deck_id)
     deck_words = [element['english_word'] for element in all_cards.values()]
-    eng, ru = ai.generate_card_recommendation.generate_card_recommendation(deck['name'], deck_words)
+    eng, ru = ai.generate_card_recommendation.generate_card_recommendation(word, deck_words)
     card_id = await cards.add(db, eng, ru, "", deck_id)
     return JSONResponse(content={'card_id': card_id})
