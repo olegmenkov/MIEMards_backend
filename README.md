@@ -57,11 +57,15 @@ docker compose up -d
 ```
 2. Делаете ревизию
 
-```alembic revision --autogenerate -m "Added new tables"```
+```shell
+alembic revision --autogenerate -m "Added new tables"
+```
 
 3. Обновляете
 
-```alembic upgrade head```
+```shell
+alembic upgrade head
+```
 
 ### Запустить приложение
 
