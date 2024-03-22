@@ -77,7 +77,7 @@ make test
 
 ## Примеры использования
 
-Примеры использования проекта MIEMards вы можете найти в нашей [пользовательской документации](https://docs.google.com/document/d/11Q4lg1675mnOO6pmb2SldNC3Sfv87io6q4iJpIS47mw/edit)  
+Примеры использования проекта MIEMards вы можете найти в нашем [руководстве пользователя](https://docs.google.com/document/d/11Q4lg1675mnOO6pmb2SldNC3Sfv87io6q4iJpIS47mw/edit)  
 
 
 ## Ваш вклад
