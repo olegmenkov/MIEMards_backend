@@ -13,6 +13,7 @@ class Cards(Base):
     c_english_word = Column(String(128))
     c_translation = Column(String(128))
     c_explanation = Column(String(128))
+    c_image = Column(String(1024))
 
 
 class Decks(Base):

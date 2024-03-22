@@ -6,28 +6,42 @@ from sqlalchemy import text
 from loguru import logger
 
 
-async def add(db, english_word: str, translation: str, explanation: str, deck_id: str):
+async def add(db, english_word: str, translation: str, explanation: str, deck_id: str, image: str = None):
     card_id = uuid.uuid4()
-    query = text("""
-                    INSERT INTO cards (c_id, c_english_word, c_translation, c_explanation, c_deck_id) 
-                    VALUES (:id, :english_word, :translation, :explanation, :deck_id)
+    if image:
+        query = text("""
+                        INSERT INTO cards
+                        VALUES (:id, :english_word, :translation, :explanation, :deck_id, :image)
                     """)
-    await db.execute(query,
-                     {'id': card_id,
-                      'english_word': english_word,
-                      'translation': translation,
-                      'explanation': explanation,
-                      'deck_id': deck_id})
+        await db.execute(query,
+                         {'id': card_id,
+                          'english_word': english_word,
+                          'translation': translation,
+                          'explanation': explanation,
+                          'deck_id': deck_id,
+                          'image': image})
+    else:
+        query = text("""
+                        INSERT INTO cards
+                        VALUES (:id, :english_word, :translation, :explanation, :deck_id)
+                    """)
+        await db.execute(query,
+                         {'id': card_id,
+                          'english_word': english_word,
+                          'translation': translation,
+                          'explanation': explanation,
+                          'deck_id': deck_id})
+
     return str(card_id)
 
 
 async def get(db, card_id: str):
-    query = text("""SELECT c_english_word, c_translation, c_explanation FROM cards where c_id = :card_id""")
+    query = text("""SELECT c_english_word, c_translation, c_explanation, c_image FROM cards where c_id = :card_id""")
     result = await db.execute(query, {'card_id': card_id})
     res = result.fetchone()
     if res:
-        english_word, translation, explanation = res
-        return {"english_word": english_word, "translation": translation, "explanation": explanation}
+        english_word, translation, explanation, image = res
+        return {"english_word": english_word, "translation": translation, "explanation": explanation, 'image': image}
     else:
         raise HTTPException(status_code=404,
                             detail='This card is not found')
@@ -50,8 +64,8 @@ async def get_all(db, deck_id: str):
     cards = {}
 
     for row in result:
-        card_id, english_word, translation, explanation = row
+        card_id, english_word, translation, explanation, image = row
         cards[str(card_id)] = {"card_id": str(card_id), "english_word": english_word, "translation": translation,
-                               "explanation": explanation}
+                               "explanation": explanation, 'image': image}
 
     return cards

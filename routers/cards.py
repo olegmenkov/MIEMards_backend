@@ -43,8 +43,8 @@ async def get_card(card_id: str, user_id: str = Depends(authentification.get_cur
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
 
-    deck_info = await cards.get(db, card_id)
-    return JSONResponse(content=deck_info)
+    card_info = await cards.get(db, card_id)
+    return JSONResponse(content=card_info)
 
 
 @router.patch("")

@@ -47,6 +47,7 @@ class CardData(BaseModel):
     translation: str
     explanation: str
     deck_id: str
+    image: Optional[str]
 
 
 class GetCardById(BaseModel):
