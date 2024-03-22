@@ -10,7 +10,7 @@ async def add(db, english_word: str, translation: str, explanation: str, deck_id
     card_id = uuid.uuid4()
     if image:
         query = text("""
-                        INSERT INTO cards
+                        INSERT INTO cards (c_id, c_deck_id, c_english_word, c_translation, c_explanation, c_image)
                         VALUES (:id, :english_word, :translation, :explanation, :deck_id, :image)
                     """)
         await db.execute(query,
@@ -22,7 +22,7 @@ async def add(db, english_word: str, translation: str, explanation: str, deck_id
                           'image': image})
     else:
         query = text("""
-                        INSERT INTO cards
+                        INSERT INTO cards (c_id, c_deck_id, c_english_word, c_translation, c_explanation)
                         VALUES (:id, :english_word, :translation, :explanation, :deck_id)
                     """)
         await db.execute(query,
