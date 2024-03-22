@@ -28,8 +28,12 @@ async def create_card(card_data: CardData, user_id: str = Depends(authentificati
         raise HTTPException(status_code=404, detail="User not found")
 
     # Вызываем функцию для добавления карты в базу данных
-    card_id = await cards.add(db, card_data.english_word, card_data.translation, card_data.explanation,
-                              card_data.deck_id)
+    if card_data.image:
+        card_id = await cards.add(db, card_data.english_word, card_data.translation, card_data.explanation,
+                                  card_data.deck_id, card_data.image)
+    else:
+        card_id = await cards.add(db, card_data.english_word, card_data.translation, card_data.explanation,
+                                  card_data.deck_id)
     return JSONResponse(content={"card_id": card_id})
 
 
