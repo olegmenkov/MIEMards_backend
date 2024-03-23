@@ -45,6 +45,6 @@ async def get_all(db, user_id):
 
     for row in result:
         post_id, text_, date = row
-        posts[str(post_id)] = {"text": text_, "date": date}
+        posts[str(post_id)] = {"text": text_}
 
     return posts
